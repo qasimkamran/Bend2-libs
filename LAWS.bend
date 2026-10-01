@@ -1,10 +1,8 @@
-# LAWS.bend
-
+# Library correctness laws and integration obligations.
 
 import Base
 
-
-# Contract and Law for libs/JSON.bend.
+# JSON contract: libs/JSON.bend.
 #
 # Expected API:
 #   Json.parse(text: String) -> Result<&1, &1, Json.Error, Json.Value>
@@ -13,9 +11,8 @@ import Base
 import ./libs/JSON.bend as Json
 import ./libs/HTTPClient.bend as HttpClient
 
-
 # ============================================================
-# Core correctness
+# JSON: Core correctness
 # ============================================================
 
 law stringify_parse_roundtrip:
@@ -27,9 +24,8 @@ law stringify_parse_roundtrip:
         Result<&1, &1, Json.Error, Json.Value>
     }
 
-
 # ============================================================
-# Literals
+# JSON: Literals
 # ============================================================
 
 law parses_null:
@@ -44,9 +40,8 @@ law parses_false:
     { Json.parse("false") == Done{Json.Bool{False{}}} :
         Result<&1, &1, Json.Error, Json.Value> }
 
-
 # ============================================================
-# Whitespace
+# JSON: Whitespace
 # ============================================================
 
 law accepts_leading_space:
@@ -67,9 +62,8 @@ law accepts_surrounding_space:
         Result<&1, &1, Json.Error, Json.Value>
     }
 
-
 # ============================================================
-# Invalid / incomplete input
+# JSON: Invalid and incomplete input
 # ============================================================
 
 law rejects_trailing_garbage:
@@ -100,9 +94,8 @@ law rejects_whitespace_only:
     { Result.is_fail(&1, &1, Json.Error, Json.Value, Json.parse(" \t\r\n "))
         == True{} : Bool }
 
-
 # ============================================================
-# Strings
+# JSON: Strings
 # ============================================================
 
 law parses_empty_string:
@@ -129,9 +122,8 @@ law rejects_unterminated_string:
     { Result.is_fail(&1, &1, Json.Error, Json.Value, Json.parse("\"hello"))
         == True{} : Bool }
 
-
 # ============================================================
-# Arrays
+# JSON: Arrays
 # ============================================================
 
 law parses_empty_array:
@@ -156,9 +148,8 @@ law rejects_array_trailing_comma:
     { Result.is_fail(&1, &1, Json.Error, Json.Value, Json.parse("[null,]"))
         == True{} : Bool }
 
-
 # ============================================================
-# Objects
+# JSON: Objects
 # ============================================================
 
 law parses_empty_object:
@@ -173,9 +164,8 @@ law rejects_object_trailing_comma:
     { Result.is_fail(&1, &1, Json.Error, Json.Value, Json.parse("{\"x\":null,}"))
         == True{} : Bool }
 
-
 # ============================================================
-# Nesting
+# JSON: Nesting
 # ============================================================
 
 law parses_nested_containers:
@@ -198,7 +188,7 @@ law parses_nested_containers:
     }
 
 # ============================================================
-# Additional JSON semantics
+# JSON: Additional semantics
 # ============================================================
 
 # JSON permits only space, tab, carriage return and line feed as whitespace.
@@ -268,10 +258,10 @@ law gpu_batch_matches_cpu:
         Json.parse_batch_gpu(batch) == Json.parse_batch(batch) : Json.BatchResult
     }
 
+# ============================================================
+# HTTP: Client contract
+# ============================================================
 
-# ============================================================
-# HTTP client contract -- production implementation
-# ============================================================
 # These laws constrain the production libs/HTTPClient.bend implementation.
 # Keep all JSON laws above. Implement these functions in production HTTP code;
 # prove these laws in PROOF.bend without weakening or replacing the contract.
@@ -315,8 +305,10 @@ def http_unicode_string(text: String) -> Bool:
         case SNil{}: True{}
         case SCon{Chr{c}, rest}: Bool.and(http_unicode_scalar(c), http_unicode_string(rest))
 
+# ============================================================
+# HTTP: UTF-8 and binary correctness
+# ============================================================
 
-# UTF-8 and binary correctness.
 law http_utf8_octets:
     { HttpClient.utf8("é") == [195, 169] : List<&2, U32> }
 
@@ -331,6 +323,10 @@ law http_binary_boundaries:
 
 law http_reject_non_octet:
     { HttpClient.valid_bytes([256]) == False{} : Bool }
+
+# ============================================================
+# HTTP: URL validation and request targets
+# ============================================================
 
 # URL validation and exact request-target preservation.
 
@@ -402,6 +398,10 @@ law http_reject_unsupported_ipv6:
     { HttpClient.parse_url("https://[::1]/")
         == Fail{HttpClient.UnsupportedHost{}} : Result<&2, &2, HttpClient.Error, HttpClient.Target> }
 
+# ============================================================
+# HTTP: Header lookup
+# ============================================================
+
 # Header lookup never joins duplicates or changes field values.
 
 law http_header_lookup_case_insensitive:
@@ -411,6 +411,10 @@ law http_header_lookup_case_insensitive:
 law http_header_lookup_missing:
     { HttpClient.field_values("missing", Nil{})
         == Nil{} : List<&2, List<&2, U32>> }
+
+# ============================================================
+# HTTP: Request encoding
+# ============================================================
 
 # Request encoder output is byte-exact and owns framing headers.
 
@@ -550,7 +554,9 @@ law http_decode_empty_fragments:
 #     : HttpClient.Decode
 #   }
 
-# Response framing, HTTP statuses, no-body precedence and metadata.
+# ============================================================
+# HTTP: Response framing and metadata
+# ============================================================
 
 law http_content_length:
     { http_decode("GET", "HTTP/1.1 200 OK\r\nContent-Length: 3\r\n\r\nabc", False{})
@@ -644,6 +650,10 @@ law http_header_value_trimming:
     { http_decode("GET", "HTTP/1.1 200 OK\r\ncOnTeNt-LeNgTh:\t3 \t\r\nSet-Cookie: a=1\r\nSet-Cookie: b=2\r\n\r\nabc", False{})
         == HttpClient.Parsed{HttpClient.Response{200, [http_header("cOnTeNt-LeNgTh", "3"), http_header("Set-Cookie", "a=1"), http_header("Set-Cookie", "b=2")], HttpClient.utf8("abc"), Nil{}}, HttpClient.utf8("")} : HttpClient.Decode }
 
+# ============================================================
+# HTTP: Chunked coding
+# ============================================================
+
 # Chunked coding: payload only, extensions ignored, trailers kept separate.
 
 law http_chunked:
@@ -673,6 +683,10 @@ law http_missing_final_chunk:
 law http_unfinished_trailers:
     { http_decode("GET", "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n0\r\nX-End: yes\r\n", True{})
         == HttpClient.Rejected{HttpClient.UnexpectedEof{}} : HttpClient.Decode }
+
+# ============================================================
+# HTTP: Invalid and unsupported responses
+# ============================================================
 
 # Reject ambiguity, invalid syntax, unsupported features and length overflow.
 
@@ -752,6 +766,10 @@ law http_reject_upgrade:
     { http_decode("GET", "HTTP/1.1 101 Switching Protocols\r\n\r\n", True{})
         == HttpClient.Rejected{HttpClient.UnsupportedUpgrade{}} : HttpClient.Decode }
 
+# ============================================================
+# HTTP: Resource limit boundaries
+# ============================================================
+
 # Exact limit boundaries. All counts use bytes, never character counts.
 
 law http_body_limit_exact:
@@ -812,6 +830,10 @@ law http_chunk_line_bytes_over:
     { HttpClient.decode("GET", HttpClient.Limits{16384, 100, 1048576, 8192, 50, 8, 3, 2097152}, HttpClient.utf8("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n0;foo=bar\r\n\r\n"), False{})
         == HttpClient.Rejected{HttpClient.LimitExceeded{}} : HttpClient.Decode }
 
+# ============================================================
+# HTTP: Short writes
+# ============================================================
+
 # Short writes consume exactly the acknowledged prefix.
 
 law http_partial_write:
@@ -833,6 +855,10 @@ law http_zero_write_progress:
 law http_write_overreport:
     { HttpClient.drop_written([1], 2)
         == Fail{HttpClient.InvalidFraming{}} : Result<&2, &2, HttpClient.Error, List<&2, U32>> }
+
+# ============================================================
+# HTTP: JSON integration
+# ============================================================
 
 # JSON integration uses the real local parser, keeps number lexemes and handles
 # non-ASCII text. Read_json is explicit and need not require a Content-Type.
@@ -865,8 +891,9 @@ law http_json_invalid_utf8:
         == Fail{HttpClient.InvalidUtf8{}} : Result<&1, &1, HttpClient.Error, Json.Value> }
 
 # ============================================================
-# HTTP GPU processing: pure codec parity and independent batch semantics
+# HTTP: GPU codec parity and batch semantics
 # ============================================================
+
 # Required implementation and exact Work/Outcome/Batch types: libs/HTTPClient.bend.
 # These equalities establish behavior, not GPU execution or speed. The native
 # dispatch and hardware checks in HTTP-T14 below are also required.
@@ -996,77 +1023,106 @@ law http_flatten_fork:
     }
 
 # ============================================================
-# HTTP-T: transport and resource obligations (integration evidence)
+# HTTP: Transport and resource obligations
 # ============================================================
-# These are mandatory acceptance conditions, NOT claims proved by the pure
+
+# These are mandatory acceptance conditions, not claims proved by the pure
 # equalities above. Implement a scripted transport harness and local TLS server.
 # Keep the production IO loop tied to the same codec and short-write helpers.
 #
-# HTTP-T01 Verified HTTPS: select TLS for https, send SNI for the requested DNS
-# host, check the chain and hostname, reject expired/untrusted/wrong-host certs.
-# TLS failure emits no HTTP request bytes and never reconnects over plaintext.
-# A trusted local certificate succeeds; plain http selects TCP explicitly.
+# HTTP-T01 Verified HTTPS
 #
-# HTTP-T02 Wire fidelity: capture exact POST/PUT/PATCH/GET/HEAD/DELETE/OPTIONS
-# request bytes at a loopback server. Match encode output, including Unicode
-# Content-Length, binary NUL/255, authorization value, query order and path.
-# No built-in credentials, provider defaults, hidden body edits or secret logs.
+# Select TLS for https, send SNI for the requested DNS host, check the chain
+# and hostname, reject expired/untrusted/wrong-host certs. TLS failure emits
+# no HTTP request bytes and never reconnects over plaintext. A trusted local
+# certificate succeeds; plain http selects TCP explicitly.
 #
-# HTTP-T03 Short writes: script acknowledgments 1,2,remaining and verify every
-# byte appears exactly once and in order. Zero progress/overreport terminates
-# with the specified error; never spin or replay an already written prefix.
+# HTTP-T02 Wire fidelity
 #
-# HTTP-T04 Read fragmentation: split each representative response at EVERY byte
-# boundary, including chunk CRLF and UTF-8 sequences; compare decode outcomes.
-# Exercise multiple responses in one read and prove no leftover is body data.
-# Production stops at the first final response and closes this one-shot socket.
+# Capture exact POST/PUT/PATCH/GET/HEAD/DELETE/OPTIONS request bytes at a
+# loopback server. Match encode output, including Unicode Content-Length,
+# binary NUL/255, authorization value, query order and path. No built-in
+# credentials, provider defaults, hidden body edits or secret logs.
 #
-# HTTP-T05 Cleanup: count acquired/released handles. Exactly one close for each
-# acquired handle on success, malformed HTTP, limits, failed writes/reads, TLS
-# errors and timeouts; no use after close or leak after partial initialization.
-# If TLS upgrade transfers ownership, make that transfer explicit in the trace.
+# HTTP-T03 Short writes
 #
-# HTTP-T06 Timeouts: stalled DNS/connect/TLS/write/read and a slow trickle of
-# single bytes must respect the total deadline as well as stage deadlines.
-# Monotonic time is required; counters alone do not bound a blocking syscall.
-# Zero/invalid budgets fail before socket acquisition. Fuel exhaustion is typed.
+# Script acknowledgments 1,2,remaining and verify every byte appears exactly
+# once and in order. Zero progress/overreport terminates with the specified
+# error; never spin or replay an already written prefix.
 #
-# HTTP-T07 EOF integrity: reset, timeout and unclean TLS shutdown are errors.
-# Never turn them into clean EOF to accept a close-delimited partial response.
-# Length-delimited/chunked completion needs no additional EOF read; truncation
-# before those boundaries is an error. Preserve provider error bodies intact.
+# HTTP-T04 Read fragmentation
 #
-# HTTP-T08 Resource bounds: bound request bytes before write and response
-# allocation before buffering. Include interim heads, chunk extensions, trailers
-# and decoded payload in the applicable counters; checked arithmetic cannot wrap.
-# Excessive small chunks hit wire/step/deadline limits even if payload is small.
+# Split each representative response at every byte boundary, including chunk
+# CRLF and UTF-8 sequences; compare decode outcomes. Exercise multiple
+# responses in one read and prove no leftover is body data. Production stops
+# at the first final response and closes this one-shot socket.
 #
-# HTTP-T09 Redirect/retry policy: 301/302/303/307/308, 429/500/503 and connection
-# loss after partial POST are returned without additional requests. Never send
-# credentials to a Location target automatically, downgrade TLS, or replay POST.
+# HTTP-T05 Cleanup
 #
-# HTTP-T10 JSON: send the local serializer's UTF-8 bytes, preserve Content-Type,
-# and parse only a completed decoded body with validated UTF-8. Keep the raw
+# Count acquired/released handles. Exactly one close for each acquired handle
+# on success, malformed HTTP, limits, failed writes/reads, TLS errors and
+# timeouts; no use after close or leak after partial initialization. If TLS
+# upgrade transfers ownership, make that transfer explicit in the trace.
+#
+# HTTP-T06 Timeouts
+#
+# Stalled DNS/connect/TLS/write/read and a slow trickle of single bytes must
+# respect the total deadline as well as stage deadlines. Monotonic time is
+# required; counters alone do not bound a blocking syscall. Zero/invalid
+# budgets fail before socket acquisition. Fuel exhaustion is typed.
+#
+# HTTP-T07 EOF integrity
+#
+# Reset, timeout and unclean TLS shutdown are errors. Never turn them into
+# clean EOF to accept a close-delimited partial response. Length-
+# delimited/chunked completion needs no additional EOF read; truncation before
+# those boundaries is an error. Preserve provider error bodies intact.
+#
+# HTTP-T08 Resource bounds
+#
+# Bound request bytes before write and response allocation before buffering.
+# Include interim heads, chunk extensions, trailers and decoded payload in the
+# applicable counters; checked arithmetic cannot wrap. Excessive small chunks
+# hit wire/step/deadline limits even if payload is small.
+#
+# HTTP-T09 Redirect/retry policy
+#
+# 301/302/303/307/308, 429/500/503 and connection loss after partial POST are
+# returned without additional requests. Never send credentials to a Location
+# target automatically, downgrade TLS, or replay POST.
+#
+# HTTP-T10 JSON
+#
+# Send the local serializer's UTF-8 bytes, preserve Content-Type, and parse
+# only a completed decoded body with validated UTF-8. Keep the raw
 # response/status/headers available alongside an optional JSON parse result.
 # No empty-body-to-null conversion; no attempt to parse undecoded gzip/chunks.
 #
-# HTTP-T11 Protocol subset: support HTTP/1.1; if ALPN is used, offer only
-# http/1.1. Reject h2/upgrade/tunnel results rather than misparse them as HTTP/1.1.
-# Reject unsupported transfer-coding stacks; keep supported trailers separate.
+# HTTP-T11 Protocol subset
 #
-# HTTP-T12 Concurrency: run independent loopback requests via IO.fork/IO.join.
-# Responses remain associated with their requests; no shared headers, buffers,
-# socket handles or credentials. Cancellation/failure closes only owned handles.
+# Support HTTP/1.1; if ALPN is used, offer only http/1.1. Reject
+# h2/upgrade/tunnel results rather than misparse them as HTTP/1.1. Reject
+# unsupported transfer-coding stacks; keep supported trailers separate.
 #
-# HTTP-T13 Proof linkage: all universal laws and fixtures must use exported
-# production functions. The IO adapter uses that same codec. No mock-only
-# implementation, laws bypass, unsafe proof, constant result or weakened limit.
-# Document which behavior belongs to trusted wire/system effects and which
-# properties have actual Bend proofs. Live credentials are not required.
+# HTTP-T12 Concurrency
 #
-# HTTP-T14 GPU execution: inspect real ! dispatch in the native codec, exercise
-# GPU-off, GPU-on when hardware exists, and CPU fallback. Compare exact outputs
-# and errors for mixed/odd/empty batches, large bodies, invalid messages and
-# partial inputs. Keep one socket/parser state per request outside the device.
-# Record hardware/runtime, memory bounds and throughput; CPU/GPU equality alone
+# Run independent loopback requests via IO.fork/IO.join. Responses remain
+# associated with their requests; no shared headers, buffers, socket handles
+# or credentials. Cancellation/failure closes only owned handles.
+#
+# HTTP-T13 Proof linkage
+#
+# All universal laws and fixtures must use exported production functions. The
+# IO adapter uses that same codec. No mock-only implementation, laws bypass,
+# unsafe proof, constant result or weakened limit. Document which behavior
+# belongs to trusted wire/system effects and which properties have actual Bend
+# proofs. Live credentials are not required.
+#
+# HTTP-T14 GPU execution
+#
+# Inspect real ! dispatch in the native codec, exercise GPU-off, GPU-on when
+# hardware exists, and CPU fallback. Compare exact outputs and errors for
+# mixed/odd/empty batches, large bodies, invalid messages and partial inputs.
+# Keep one socket/parser state per request outside the device. Record
+# hardware/runtime, memory bounds and throughput; CPU/GPU equality alone
 # neither proves GPU execution nor guarantees a speedup for small workloads.
