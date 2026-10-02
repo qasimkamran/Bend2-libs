@@ -352,7 +352,7 @@ def from.go(s: String, a: Array<U32>, +i: U32, +w: U32) -> Array<U32>:
             +full = U32.is_eq((i .&. 3 : U32), 3)
             from.go(t, flush(full, a, (i >> 2n : U32), w2), (i + 1 : U32), Bool.pick(U32, full, 0, w2))
 
-# A byte string (one Char per octet, as Wire and HttpClient use) to Bytes. Each Char keeps its low 8 bits.
+# A byte string (one Char per octet, as Wire uses) to Bytes. Each Char keeps its low 8 bits.
 def from_string(+s: String) -> Bytes:
     +n = count(s, 0)
     Bytes{n, from.go(s, alloc(n), 0, 0)}
