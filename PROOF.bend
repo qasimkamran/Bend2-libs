@@ -1,6 +1,7 @@
 import Base
 import ./LAWS.bend as L
 import ./libs/JSON.bend as Json
+import ./libs/URL.bend as URL
 import ./proof/JSON_StringProof.bend as StringProof
 import ./proof/JSON_PrimitiveProof.bend as PrimitiveProof
 import ./proof/JSON_NumberLexProof.bend as NumberLexProof
@@ -297,3 +298,13 @@ def L.accepts_trailing_space(value):
 def L.accepts_surrounding_space(value):
     +v = value
     Equal.trans(Result<&1, &1, Json.Error, Json.Value>, Json.parse(" \n\t\r" ++ Json.stringify(v) ++ "\r\t\n "), Json.parse(Json.stringify(v)), Done{v}, parse_surrounding_space(Json.stringify(v)), L.stringify_parse_roundtrip(v))
+
+
+def L.url_component_ascii():
+    {==}
+
+def L.url_component_reserved():
+    {==}
+
+def L.url_component_utf8():
+    {==}

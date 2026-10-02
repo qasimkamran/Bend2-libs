@@ -1,6 +1,10 @@
 # Bend2-libs
 
-Shared Bend JSON library and the local wire package override. The BendHub package entry point includes these modules, their laws and proofs, and the JSON usage examples.
+Shared Bend JSON and URL component encoding libraries, plus the local wire package override. The BendHub package entry point includes these modules, their laws and proofs, and the JSON usage examples.
+
+## URL component encoding
+
+Import `libs/URL.bend` as `URL` and call `URL.percent_component(text)` for a path segment, query value, or form field. It UTF-8 encodes the input and percent-escapes each byte, preserving the former SQL helper behavior.
 
 ## JSON and GPU execution
 

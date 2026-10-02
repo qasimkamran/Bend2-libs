@@ -9,6 +9,7 @@ import Base
 #   Json.stringify(value: Json.Value) -> String
 
 import ./libs/JSON.bend as Json
+import ./libs/URL.bend as URL
 
 # ============================================================
 # JSON: Core correctness
@@ -256,3 +257,17 @@ law gpu_batch_matches_cpu:
     for batch: Json.Batch {
         Json.parse_batch_gpu(batch) == Json.parse_batch(batch) : Json.BatchResult
     }
+
+# ============================================================
+# URL component encoding
+# ============================================================
+
+# Encode each UTF-8 byte with an uppercase percent escape.
+law url_component_ascii:
+    { URL.percent_component("A") == "%41" : String }
+
+law url_component_reserved:
+    { URL.percent_component("/") == "%2F" : String }
+
+law url_component_utf8:
+    { URL.percent_component(SCon{Chr{233}, SNil{}}) == "%C3%A9" : String }

@@ -1,5 +1,6 @@
 import Base
 import ./libs/JSON.bend as Json
+import ./libs/URL.bend as URL
 import ./libs/wire/wire.bend as Wire
 import ./LAWS.bend as Laws
 import ./PROOF.bend as Proof
