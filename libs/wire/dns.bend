@@ -482,7 +482,7 @@ def resolve.id(name: String,
             none()
         case Done{x}:
             do IO<Maybe<&2, String>>:
-                u : Result<&1, &1, U32 & String, Socket> <- UDP.bind(0)
+                u : Result<&1, &1, U32 & String, Socket> <- UDP.bind("0.0.0.0", 0)
                 resolve.sock(ns, U32.and(x, 65535), name, u)
 
 def resolve.ns(name: String, ns: Maybe<&2, String>) -> IO(Maybe<&2, String>):
@@ -561,7 +561,7 @@ def resolve.id.timeout(name: String,
         case Fail{error}: none()
         case Done{random}:
             do IO<Maybe<&2, String>>:
-                bound : Result<&1, &1, U32 & String, Socket> <- UDP.bind(0)
+                bound : Result<&1, &1, U32 & String, Socket> <- UDP.bind("0.0.0.0", 0)
                 resolve.sock.timeout(ns, U32.and(random, 65535), name, ms, bound)
 
 def resolve.ns.timeout(name: String, ns: String, ms: U32) -> IO(Maybe<&2, String>):
