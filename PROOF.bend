@@ -2,6 +2,7 @@ import Base
 import ./LAWS.bend as L
 import ./libs/JSON.bend as Json
 import ./libs/URL.bend as URL
+import ./libs/AES256GCM.bend as AES
 import ./proof/JSON_StringProof.bend as StringProof
 import ./proof/JSON_PrimitiveProof.bend as PrimitiveProof
 import ./proof/JSON_NumberLexProof.bend as NumberLexProof
@@ -307,4 +308,122 @@ def L.url_component_reserved():
     {==}
 
 def L.url_component_utf8():
+    {==}
+
+
+def AES.key(bytes):
+    AES.key_impl(bytes)
+
+def AES.nonce(bytes):
+    AES.nonce_impl(bytes)
+
+def AES.encrypt(key, nonce, aad, plaintext):
+    AES.encrypt_impl(key, nonce, aad, plaintext)
+
+def AES.decrypt(key, aad, envelope):
+    AES.decrypt_impl(key, aad, envelope)
+
+def AES.encode(envelope):
+    AES.encode_impl(envelope)
+
+def AES.parse(text):
+    AES.parse_impl(text)
+
+def L.aes256gcm_nist_canonical_encoding():
+    {==}
+
+def L.aes256gcm_nist_empty_encrypt():
+    {==}
+
+def L.aes256gcm_nist_empty_decrypt():
+    {==}
+
+def L.aes256gcm_nist_canonical_parsing():
+    {==}
+
+def L.aes256gcm_nist_multiblock_encrypt():
+    {==}
+
+def L.aes256gcm_nist_multiblock_decrypt():
+    {==}
+
+def L.aes256gcm_nist_aad_only_encrypt():
+    {==}
+
+def L.aes256gcm_nist_aad_only_decrypt():
+    {==}
+
+def L.aes256gcm_nist_aad_and_multiblock_encrypt():
+    {==}
+
+def L.aes256gcm_nist_aad_and_multiblock_decrypt():
+    {==}
+
+def L.aes256gcm_nist_partial_block_encrypt():
+    {==}
+
+def L.aes256gcm_nist_partial_block_decrypt():
+    {==}
+
+def L.aes256gcm_rejects_empty_envelope():
+    {==}
+
+def L.aes256gcm_rejects_unknown_version():
+    {==}
+
+def L.aes256gcm_rejects_missing_version():
+    {==}
+
+def L.aes256gcm_rejects_short_nonce():
+    {==}
+
+def L.aes256gcm_rejects_long_nonce():
+    {==}
+
+def L.aes256gcm_rejects_short_tag():
+    {==}
+
+def L.aes256gcm_rejects_long_tag():
+    {==}
+
+def L.aes256gcm_rejects_odd_ciphertext_hex():
+    {==}
+
+def L.aes256gcm_rejects_non_hex_ciphertext():
+    {==}
+
+def L.aes256gcm_rejects_non_hex_nonce():
+    {==}
+
+def L.aes256gcm_rejects_non_hex_tag():
+    {==}
+
+def L.aes256gcm_rejects_uppercase_hex():
+    {==}
+
+def L.aes256gcm_rejects_extra_field():
+    {==}
+
+def L.aes256gcm_rejects_missing_ciphertext_field():
+    {==}
+
+def L.aes256gcm_rejects_trailing_garbage():
+    {==}
+
+def L.aes256gcm_rejects_surrounding_whitespace():
+    {==}
+
+def L.aes256gcm_preserves_nonce(key, nonce, aad, plaintext, envelope, encrypted):
+    {==}
+
+def L.aes256gcm_nist_rejects_changed_aad():
+    {==}
+
+def L.aes256gcm_nist_rejects_changed_key():
+    {==}
+
+def L.aes256gcm_nist_rejects_changed_nonce():
+    {==}
+
+def L.aes256gcm_nist_rejects_changed_ciphertext():
     {==}
