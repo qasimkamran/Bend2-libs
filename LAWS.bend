@@ -10,6 +10,7 @@ import Base
 
 import ./libs/JSON.bend as Json
 import ./libs/URL.bend as URL
+import ./libs/AES256GCM.bend as AES
 
 # ============================================================
 # JSON: Core correctness
@@ -271,3 +272,336 @@ law url_component_reserved:
 
 law url_component_utf8:
     { URL.percent_component(SCon{Chr{233}, SNil{}}) == "%C3%A9" : String }
+
+
+# ============================================================
+# AES-256-GCM: validated keys and nonces
+# ============================================================
+
+law aes256gcm_accepts_32_byte_key:
+    for +bytes: List<&2, U32>
+    for -size: {List.length(&2, U32, bytes) == 32n : Nat}
+    for -valid: {AES.bytes_valid(bytes) == True{} : Bool}
+    {AES.key(bytes) == Done{AES.SecretKey{bytes, size, valid}} :
+        Result<&2, &2, AES.Error, AES.SecretKey>}
+
+law aes256gcm_rejects_wrong_key_length:
+    for bytes: List<&2, U32>
+    for -size: {List.length(&2, U32, bytes) != 32n : Nat}
+    {AES.key(bytes) == Fail{AES.InvalidKey{}} :
+        Result<&2, &2, AES.Error, AES.SecretKey>}
+
+law aes256gcm_rejects_non_byte_key:
+    for bytes: List<&2, U32>
+    for -valid: {AES.bytes_valid(bytes) == False{} : Bool}
+    {AES.key(bytes) == Fail{AES.InvalidKey{}} :
+        Result<&2, &2, AES.Error, AES.SecretKey>}
+
+law aes256gcm_accepts_12_byte_nonce:
+    for +bytes: List<&2, U32>
+    for -size: {List.length(&2, U32, bytes) == 12n : Nat}
+    for -valid: {AES.bytes_valid(bytes) == True{} : Bool}
+    {AES.nonce(bytes) == Done{AES.Nonce{bytes, size, valid}} :
+        Result<&2, &2, AES.Error, AES.Nonce>}
+
+law aes256gcm_rejects_wrong_nonce_length:
+    for bytes: List<&2, U32>
+    for -size: {List.length(&2, U32, bytes) != 12n : Nat}
+    {AES.nonce(bytes) == Fail{AES.InvalidNonce{}} :
+        Result<&2, &2, AES.Error, AES.Nonce>}
+
+law aes256gcm_rejects_non_byte_nonce:
+    for bytes: List<&2, U32>
+    for -valid: {AES.bytes_valid(bytes) == False{} : Bool}
+    {AES.nonce(bytes) == Fail{AES.InvalidNonce{}} :
+        Result<&2, &2, AES.Error, AES.Nonce>}
+
+# ============================================================
+# AES-256-GCM: encryption and authenticated decryption
+# ============================================================
+
+# This prevents satisfying the conditional roundtrip by always failing.
+law aes256gcm_encrypts_valid_input:
+    for key: AES.SecretKey
+    for nonce: AES.Nonce
+    for aad: List<&2, U32>
+    for plaintext: List<&2, U32>
+    for -aad_ok: {AES.aad_valid(aad) == True{} : Bool}
+    for -plaintext_ok: {AES.plaintext_valid(plaintext) == True{} : Bool}
+    {Result.is_done(&2, &2, AES.Error, AES.Envelope,
+        AES.encrypt(key, nonce, aad, plaintext)) == True{} : Bool}
+
+law aes256gcm_rejects_invalid_plaintext:
+    for key: AES.SecretKey
+    for nonce: AES.Nonce
+    for aad: List<&2, U32>
+    for plaintext: List<&2, U32>
+    for -valid: {AES.plaintext_valid(plaintext) == False{} : Bool}
+    {AES.encrypt(key, nonce, aad, plaintext) == Fail{AES.InvalidBytes{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_invalid_aad:
+    for key: AES.SecretKey
+    for nonce: AES.Nonce
+    for aad: List<&2, U32>
+    for plaintext: List<&2, U32>
+    for -valid: {AES.aad_valid(aad) == False{} : Bool}
+    {AES.encrypt(key, nonce, aad, plaintext) == Fail{AES.InvalidBytes{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_decrypt_rejects_invalid_aad:
+    for key: AES.SecretKey
+    for aad: List<&2, U32>
+    for envelope: AES.Envelope
+    for -valid: {AES.aad_valid(aad) == False{} : Bool}
+    {AES.decrypt(key, aad, envelope) == Fail{AES.InvalidBytes{}} :
+        Result<&2, &2, AES.Error, List<&2, U32>>}
+
+law aes256gcm_roundtrip:
+    for +key: AES.SecretKey
+    for +nonce: AES.Nonce
+    for +aad: List<&2, U32>
+    for +plaintext: List<&2, U32>
+    for +envelope: AES.Envelope
+    for -encrypted: {AES.encrypt(key, nonce, aad, plaintext) == Done{envelope} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+    {AES.decrypt(key, aad, envelope) == Done{plaintext} :
+        Result<&2, &2, AES.Error, List<&2, U32>>}
+
+law aes256gcm_preserves_nonce:
+    for +key: AES.SecretKey
+    for +nonce: AES.Nonce
+    for +aad: List<&2, U32>
+    for +plaintext: List<&2, U32>
+    for +envelope: AES.Envelope
+    for -encrypted: {AES.encrypt(key, nonce, aad, plaintext) == Done{envelope} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+    {AES.envelope_nonce(envelope) == nonce : AES.Nonce}
+
+law aes256gcm_preserves_plaintext_length:
+    for +key: AES.SecretKey
+    for +nonce: AES.Nonce
+    for +aad: List<&2, U32>
+    for +plaintext: List<&2, U32>
+    for +envelope: AES.Envelope
+    for -encrypted: {AES.encrypt(key, nonce, aad, plaintext) == Done{envelope} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+    {List.length(&2, U32, AES.ciphertext(envelope)) ==
+        List.length(&2, U32, plaintext) : Nat}
+
+# For fixed key, nonce, AAD, and ciphertext there is exactly one valid tag.
+# Different ciphertext/AAD/key/nonce can collide in a finite tag space; do not
+# claim that every possible change to those fields is mathematically rejected.
+law aes256gcm_rejects_changed_tag:
+    for +key: AES.SecretKey
+    for +nonce: AES.Nonce
+    for +aad: List<&2, U32>
+    for +plaintext: List<&2, U32>
+    for +envelope: AES.Envelope
+    for +tampered: AES.Envelope
+    for -encrypted: {AES.encrypt(key, nonce, aad, plaintext) == Done{envelope} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+    for -same_nonce: {AES.envelope_nonce(tampered) ==
+        AES.envelope_nonce(envelope) : AES.Nonce}
+    for -same_ciphertext: {AES.ciphertext(tampered) ==
+        AES.ciphertext(envelope) : List<&2, U32>}
+    for -changed_tag: {AES.tag_bytes(AES.envelope_tag(tampered)) !=
+        AES.tag_bytes(AES.envelope_tag(envelope)) : List<&2, U32>}
+    {AES.decrypt(key, aad, tampered) == Fail{AES.AuthenticationFailed{}} :
+        Result<&2, &2, AES.Error, List<&2, U32>>}
+
+# ============================================================
+# AES-256-GCM: strict, canonical versioned envelope
+# ============================================================
+
+law aes256gcm_envelope_roundtrip:
+    for +envelope: AES.Envelope
+    {AES.parse(AES.encode(envelope)) == Done{envelope} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_envelope_is_canonical:
+    for +text: String
+    for +envelope: AES.Envelope
+    for -parsed: {AES.parse(text) == Done{envelope} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+    {AES.encode(envelope) == text : String}
+
+law aes256gcm_rejects_empty_envelope:
+    {AES.parse("") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_unknown_version:
+    {AES.parse("v2.cafebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda7e.") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_missing_version:
+    {AES.parse("cafebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda7e.") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_short_nonce:
+    {AES.parse("v1.cafebabefacedbaddecaf8.fd2caa16a5832e76aa132c1453eeda7e.") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_long_nonce:
+    {AES.parse("v1.cafebabefacedbaddecaf88800.fd2caa16a5832e76aa132c1453eeda7e.") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_short_tag:
+    {AES.parse("v1.cafebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda.") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_long_tag:
+    {AES.parse("v1.cafebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda7e00.") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_odd_ciphertext_hex:
+    {AES.parse("v1.cafebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda7e.0") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_non_hex_ciphertext:
+    {AES.parse("v1.cafebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda7e.gg") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_non_hex_nonce:
+    {AES.parse("v1.zzfebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda7e.") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_non_hex_tag:
+    {AES.parse("v1.cafebabefacedbaddecaf888.zz2caa16a5832e76aa132c1453eeda7e.") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_uppercase_hex:
+    {AES.parse("v1.CAFEBABEFACEDBADDECAF888.fd2caa16a5832e76aa132c1453eeda7e.") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_extra_field:
+    {AES.parse("v1.cafebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda7e..") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_missing_ciphertext_field:
+    {AES.parse("v1.cafebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda7e") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_trailing_garbage:
+    {AES.parse("v1.cafebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda7e.00!") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_rejects_surrounding_whitespace:
+    {AES.parse(" v1.cafebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda7e. ") == Fail{AES.InvalidEnvelope{}} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+# ============================================================
+# AES-256-GCM: NIST known-answer laws (not roundtrip-only tests)
+# ============================================================
+# Source: NIST AES_GCM.pdf, GCM-AES256 examples 1-5 (pages 21-28).
+# https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/AES_GCM.pdf
+# These are public test fixtures, never production keys/nonces.
+
+def aes256gcm_nist_key() -> AES.SecretKey:
+    AES.SecretKey{[254, 255, 233, 146, 134, 101, 115, 28, 109, 106, 143, 148, 103, 48, 131, 8, 254, 255, 233, 146, 134, 101, 115, 28, 109, 106, 143, 148, 103, 48, 131, 8], {==}, {==}}
+
+def aes256gcm_nist_nonce() -> AES.Nonce:
+    AES.Nonce{[202, 254, 186, 190, 250, 206, 219, 173, 222, 202, 248, 136], {==}, {==}}
+
+def aes256gcm_nist_empty() -> AES.Envelope:
+    AES.Envelope{aes256gcm_nist_nonce(), [],
+        AES.Tag{[253, 44, 170, 22, 165, 131, 46, 118, 170, 19, 44, 20, 83, 238, 218, 126], {==}, {==}}, {==}}
+
+law aes256gcm_nist_empty_encrypt:
+    {AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
+        [], []) == Done{aes256gcm_nist_empty()} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_nist_empty_decrypt:
+    {AES.decrypt(aes256gcm_nist_key(), [],
+        aes256gcm_nist_empty()) == Done{[]} :
+        Result<&2, &2, AES.Error, List<&2, U32>>}
+
+def aes256gcm_nist_multiblock() -> AES.Envelope:
+    AES.Envelope{aes256gcm_nist_nonce(), [82, 45, 193, 240, 153, 86, 125, 7, 244, 127, 55, 163, 42, 132, 66, 125, 100, 58, 140, 220, 191, 229, 192, 201, 117, 152, 162, 189, 37, 85, 209, 170, 140, 176, 142, 72, 89, 13, 187, 61, 167, 176, 139, 16, 86, 130, 136, 56, 197, 246, 30, 99, 147, 186, 122, 10, 188, 201, 246, 98, 137, 128, 21, 173],
+        AES.Tag{[176, 148, 218, 197, 217, 52, 113, 189, 236, 26, 80, 34, 112, 227, 204, 108], {==}, {==}}, {==}}
+
+law aes256gcm_nist_multiblock_encrypt:
+    {AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
+        [], [217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57, 26, 175, 210, 85]) == Done{aes256gcm_nist_multiblock()} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_nist_multiblock_decrypt:
+    {AES.decrypt(aes256gcm_nist_key(), [],
+        aes256gcm_nist_multiblock()) == Done{[217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57, 26, 175, 210, 85]} :
+        Result<&2, &2, AES.Error, List<&2, U32>>}
+
+def aes256gcm_nist_aad_only() -> AES.Envelope:
+    AES.Envelope{aes256gcm_nist_nonce(), [],
+        AES.Tag{[222, 52, 182, 220, 212, 206, 226, 253, 190, 195, 206, 160, 26, 241, 238, 68], {==}, {==}}, {==}}
+
+law aes256gcm_nist_aad_only_encrypt:
+    {AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
+        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212], []) == Done{aes256gcm_nist_aad_only()} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_nist_aad_only_decrypt:
+    {AES.decrypt(aes256gcm_nist_key(), [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212],
+        aes256gcm_nist_aad_only()) == Done{[]} :
+        Result<&2, &2, AES.Error, List<&2, U32>>}
+
+def aes256gcm_nist_aad_and_multiblock() -> AES.Envelope:
+    AES.Envelope{aes256gcm_nist_nonce(), [82, 45, 193, 240, 153, 86, 125, 7, 244, 127, 55, 163, 42, 132, 66, 125, 100, 58, 140, 220, 191, 229, 192, 201, 117, 152, 162, 189, 37, 85, 209, 170, 140, 176, 142, 72, 89, 13, 187, 61, 167, 176, 139, 16, 86, 130, 136, 56, 197, 246, 30, 99, 147, 186, 122, 10, 188, 201, 246, 98, 137, 128, 21, 173],
+        AES.Tag{[192, 109, 118, 243, 25, 48, 254, 243, 122, 202, 226, 62, 212, 101, 174, 98], {==}, {==}}, {==}}
+
+law aes256gcm_nist_aad_and_multiblock_encrypt:
+    {AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
+        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212], [217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57, 26, 175, 210, 85]) == Done{aes256gcm_nist_aad_and_multiblock()} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_nist_aad_and_multiblock_decrypt:
+    {AES.decrypt(aes256gcm_nist_key(), [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212],
+        aes256gcm_nist_aad_and_multiblock()) == Done{[217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57, 26, 175, 210, 85]} :
+        Result<&2, &2, AES.Error, List<&2, U32>>}
+
+def aes256gcm_nist_partial_block() -> AES.Envelope:
+    AES.Envelope{aes256gcm_nist_nonce(), [82, 45, 193, 240, 153, 86, 125, 7, 244, 127, 55, 163, 42, 132, 66, 125, 100, 58, 140, 220, 191, 229, 192, 201, 117, 152, 162, 189, 37, 85, 209, 170, 140, 176, 142, 72, 89, 13, 187, 61, 167, 176, 139, 16, 86, 130, 136, 56, 197, 246, 30, 99, 147, 186, 122, 10, 188, 201, 246, 98],
+        AES.Tag{[224, 151, 25, 95, 69, 50, 218, 137, 95, 185, 23, 165, 165, 92, 106, 160], {==}, {==}}, {==}}
+
+law aes256gcm_nist_partial_block_encrypt:
+    {AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
+        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133], [217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57]) == Done{aes256gcm_nist_partial_block()} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+law aes256gcm_nist_partial_block_decrypt:
+    {AES.decrypt(aes256gcm_nist_key(), [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133],
+        aes256gcm_nist_partial_block()) == Done{[217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57]} :
+        Result<&2, &2, AES.Error, List<&2, U32>>}
+
+law aes256gcm_nist_canonical_encoding:
+    {AES.encode(aes256gcm_nist_empty()) == "v1.cafebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda7e." : String}
+
+law aes256gcm_nist_canonical_parsing:
+    {AES.parse("v1.cafebabefacedbaddecaf888.fd2caa16a5832e76aa132c1453eeda7e.") == Done{aes256gcm_nist_empty()} :
+        Result<&2, &2, AES.Error, AES.Envelope>}
+
+# Concrete tamper checks supplement tag uniqueness without claiming collision-
+# free authentication for all distinct AAD, nonce, key, or ciphertext inputs.
+law aes256gcm_nist_rejects_changed_aad:
+    {AES.decrypt(aes256gcm_nist_key(), [1], aes256gcm_nist_empty()) ==
+        Fail{AES.AuthenticationFailed{}} :
+        Result<&2, &2, AES.Error, List<&2, U32>>}
+
+law aes256gcm_nist_rejects_changed_key:
+    {AES.decrypt(AES.SecretKey{List.replicate(U32, 32n, 0), {==}, {==}},
+        [], aes256gcm_nist_empty()) == Fail{AES.AuthenticationFailed{}} :
+        Result<&2, &2, AES.Error, List<&2, U32>>}
+
+law aes256gcm_nist_rejects_changed_nonce:
+    {AES.decrypt(aes256gcm_nist_key(), [],
+        AES.Envelope{AES.Nonce{List.replicate(U32, 12n, 0), {==}, {==}},
+            [], AES.Tag{[253, 44, 170, 22, 165, 131, 46, 118, 170, 19, 44, 20, 83, 238, 218, 126], {==}, {==}}, {==}}) ==
+        Fail{AES.AuthenticationFailed{}} :
+        Result<&2, &2, AES.Error, List<&2, U32>>}
+
+law aes256gcm_nist_rejects_changed_ciphertext:
+    {AES.decrypt(aes256gcm_nist_key(), [],
+        AES.Envelope{aes256gcm_nist_nonce(), [1],
+            AES.Tag{[253, 44, 170, 22, 165, 131, 46, 118, 170, 19, 44, 20, 83, 238, 218, 126], {==}, {==}}, {==}}) ==
+        Fail{AES.AuthenticationFailed{}} :
+        Result<&2, &2, AES.Error, List<&2, U32>>}
