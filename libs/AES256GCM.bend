@@ -1,4 +1,4 @@
-﻿import Base
+import Base
 import ./AES256GCMCore.bend as Core
 
 # AES-256-GCM with validated inputs and canonical envelope serialization.

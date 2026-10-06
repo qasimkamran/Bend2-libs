@@ -1,4 +1,4 @@
-﻿import Base
+import Base
 import ../libs/AES256GCM.bend as AES
 import ../libs/AES256GCMCore.bend as Core
 

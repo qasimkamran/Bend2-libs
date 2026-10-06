@@ -1,4 +1,4 @@
-﻿import Base
+import Base
 import ./proof/AES_NistInputProof.bend as AESNistInputProof
 import ./LAWS.bend as L
 import ./libs/JSON.bend as Json
