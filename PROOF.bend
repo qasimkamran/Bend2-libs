@@ -1,8 +1,14 @@
-import Base
+﻿import Base
 import ./LAWS.bend as L
 import ./libs/JSON.bend as Json
 import ./libs/URL.bend as URL
 import ./libs/AES256GCM.bend as AES
+import ./libs/AES256GCMCore.bend as Core
+import ./proof/AES_EncryptProof.bend as AESEncryptProof
+import ./proof/AES_TamperProof.bend as AESTamperProof
+import ./proof/AES_CanonicalProof.bend as AESCanonicalProof
+import ./proof/AES_ConstructorProof.bend as AESConstructorProof
+import ./proof/AES_IdentityProof.bend as AESIdentityProof
 import ./proof/JSON_StringProof.bend as StringProof
 import ./proof/JSON_PrimitiveProof.bend as PrimitiveProof
 import ./proof/JSON_NumberLexProof.bend as NumberLexProof
@@ -276,7 +282,6 @@ def L.preserves_number_lexeme():
 def L.gpu_batch_matches_cpu(batch):
     {==}
 
-
 def L.stringify_parse_roundtrip(value):
     +v = value
     Equal.trans(ResultValue(), Json.parse(Json.stringify(v)),
@@ -300,7 +305,6 @@ def L.accepts_surrounding_space(value):
     +v = value
     Equal.trans(Result<&1, &1, Json.Error, Json.Value>, Json.parse(" \n\t\r" ++ Json.stringify(v) ++ "\r\t\n "), Json.parse(Json.stringify(v)), Done{v}, parse_surrounding_space(Json.stringify(v)), L.stringify_parse_roundtrip(v))
 
-
 def L.url_component_ascii():
     {==}
 
@@ -308,61 +312,6 @@ def L.url_component_reserved():
     {==}
 
 def L.url_component_utf8():
-    {==}
-
-
-def AES.key(bytes):
-    AES.key_impl(bytes)
-
-def AES.nonce(bytes):
-    AES.nonce_impl(bytes)
-
-def AES.encrypt(key, nonce, aad, plaintext):
-    AES.encrypt_impl(key, nonce, aad, plaintext)
-
-def AES.decrypt(key, aad, envelope):
-    AES.decrypt_impl(key, aad, envelope)
-
-def AES.encode(envelope):
-    AES.encode_impl(envelope)
-
-def AES.parse(text):
-    AES.parse_impl(text)
-
-def L.aes256gcm_nist_canonical_encoding():
-    {==}
-
-def L.aes256gcm_nist_empty_encrypt():
-    {==}
-
-def L.aes256gcm_nist_empty_decrypt():
-    {==}
-
-def L.aes256gcm_nist_canonical_parsing():
-    {==}
-
-def L.aes256gcm_nist_multiblock_encrypt():
-    {==}
-
-def L.aes256gcm_nist_multiblock_decrypt():
-    {==}
-
-def L.aes256gcm_nist_aad_only_encrypt():
-    {==}
-
-def L.aes256gcm_nist_aad_only_decrypt():
-    {==}
-
-def L.aes256gcm_nist_aad_and_multiblock_encrypt():
-    {==}
-
-def L.aes256gcm_nist_aad_and_multiblock_decrypt():
-    {==}
-
-def L.aes256gcm_nist_partial_block_encrypt():
-    {==}
-
-def L.aes256gcm_nist_partial_block_decrypt():
     {==}
 
 def L.aes256gcm_rejects_empty_envelope():
@@ -413,7 +362,374 @@ def L.aes256gcm_rejects_trailing_garbage():
 def L.aes256gcm_rejects_surrounding_whitespace():
     {==}
 
-def L.aes256gcm_preserves_nonce(key, nonce, aad, plaintext, envelope, encrypted):
+def aes_nat_tail_ne(+a: Nat, +b: Nat,
+    no: {1n+a != 1n+b : Nat}) -> {a != b : Nat}:
+    e => no(Equal.cong(Nat, Nat, n => 1n+n, a, b, e))
+
+def aes_nat_pred(n: Nat) -> Nat:
+    match n:
+        case 0n: 0n
+        case 1n+p: p
+
+def aes_nat_zero_ne_succ(+p: Nat) -> {0n != 1n+p : Nat}:
+    e => PrimitiveProof.absurd(Empty,
+        PrimitiveProof.false_true(Equal.sym(Bool, True{}, False{},
+            Equal.cong(Nat, Bool, n => Nat.is_eq(n, 0n),
+                0n, 1n+p, e))))
+
+def aes_nat_succ_ne_zero(+p: Nat) -> {1n+p != 0n : Nat}:
+    e => PrimitiveProof.absurd(Empty,
+        PrimitiveProof.false_true(
+            Equal.cong(Nat, Bool, n => Nat.is_eq(n, 0n),
+                1n+p, 0n, e)))
+
+def aes_nat_eq_step_status(+a: Nat, +b: Nat,
+    result: Maybe<&0, {a == b : Nat}>) ->
+    {Maybe.is_some(&0, {1n+a == 1n+b : Nat},
+        AES.aes_nat_eq_step(a, b, result)) ==
+     Maybe.is_some(&0, {a == b : Nat}, result) : Bool}:
+    match result:
+        case None{}: {==}
+        case Some{proof}: {==}
+
+def aes_nat_eq_refl_is_some(+n: Nat) ->
+    {Maybe.is_some(&0, {n == n : Nat},
+        AES.aes_nat_eq_proof(n, n)) == True{} : Bool}:
+    match n:
+        case 0n: {==}
+        case 1n+p:
+            Equal.trans(Bool,
+                Maybe.is_some(&0, {1n+p == 1n+p : Nat},
+                    AES.aes_nat_eq_proof(1n+p, 1n+p)),
+                Maybe.is_some(&0, {p == p : Nat},
+                    AES.aes_nat_eq_proof(p, p)),
+                True{},
+                aes_nat_eq_step_status(p, p, AES.aes_nat_eq_proof(p, p)),
+                aes_nat_eq_refl_is_some(p))
+
+def aes_nat_eq_is_some(+a: Nat, +b: Nat, evidence: {a == b : Nat}) ->
+    {Maybe.is_some(&0, {a == b : Nat},
+        AES.aes_nat_eq_proof(a, b)) == True{} : Bool}:
+    Equal.trans(Bool,
+        Maybe.is_some(&0, {a == b : Nat}, AES.aes_nat_eq_proof(a, b)),
+        Maybe.is_some(&0, {b == b : Nat}, AES.aes_nat_eq_proof(b, b)),
+        True{},
+        Equal.cong(Nat, Bool,
+            value => Maybe.is_some(&0, {value == b : Nat},
+                AES.aes_nat_eq_proof(value, b)),
+            a, b, evidence),
+        aes_nat_eq_refl_is_some(b))
+def aes_nat_eq_none_if_ne(+a: Nat, +b: Nat,
+    no: {a != b : Nat}) ->
+    {AES.aes_nat_eq_proof(a, b) == None{} : Maybe<&0, {a == b : Nat}>}:
+    match a b:
+        case 0n 0n:
+            PrimitiveProof.absurd({AES.aes_nat_eq_proof(0n, 0n) == None{} :
+                Maybe<&0, {0n == 0n : Nat}>}, no({==}))
+        case 0n 1n+bp: {==}
+        case 1n+ap 0n: {==}
+        case 1n+ap 1n+bp:
+            recursive = aes_nat_eq_none_if_ne(ap, bp,
+                aes_nat_tail_ne(ap, bp, no))
+            Equal.trans(Maybe<&0, {1n+ap == 1n+bp : Nat}>,
+                AES.aes_nat_eq_step(ap, bp, AES.aes_nat_eq_proof(ap, bp)),
+                AES.aes_nat_eq_step(ap, bp, None{}), None{},
+                Equal.cong(Maybe<&0, {ap == bp : Nat}>,
+                    Maybe<&0, {1n+ap == 1n+bp : Nat}>,
+                    result => AES.aes_nat_eq_step(ap, bp, result),
+                    AES.aes_nat_eq_proof(ap, bp), None{}, recursive),
+                {==})
+
+def aes_bytes_proof_none_if_invalid(+bytes: List<&2, U32>,
+    generated: Maybe<&0, {AES.bytes_valid(bytes) == True{} : Bool}>,
+    no: {AES.bytes_valid(bytes) == False{} : Bool}) ->
+    {generated == None{} : Maybe<&0, {AES.bytes_valid(bytes) == True{} : Bool}>}:
+    match generated:
+        case None{}: {==}
+        case Some{valid}:
+            contradiction = Equal.trans(Bool, True{}, AES.bytes_valid(bytes),
+                False{}, Equal.sym(Bool, AES.bytes_valid(bytes), True{}, valid),
+                no)
+            PrimitiveProof.absurd(
+                {Some{valid} == None{} :
+                  Maybe<&0, {AES.bytes_valid(bytes) == True{} : Bool}>},
+                PrimitiveProof.false_true(Equal.sym(Bool, True{}, False{},
+                    contradiction)))
+
+def aes_bytes_valid_none_if_false(+bytes: List<&2, U32>,
+    no: {AES.bytes_valid(bytes) == False{} : Bool}) ->
+    {AES.aes_bytes_valid_proof(bytes) == None{} :
+      Maybe<&0, {AES.bytes_valid(bytes) == True{} : Bool}>}:
+    aes_bytes_proof_none_if_invalid(bytes,
+        AES.aes_bytes_valid_proof(bytes), no)
+
+def aes_bytes_valid_status(+bytes: List<&2, U32>, b: Bool,
+    link: {b == AES.bytes_valid(bytes) : Bool}) ->
+    {Maybe.is_some(&0, {AES.bytes_valid(bytes) == True{} : Bool},
+        AES.aes_bytes_valid_from_bool(bytes, b, link)) == b : Bool}:
+    match b:
+        case False{}: {==}
+        case True{}: {==}
+
+def aes_bytes_cert_is_some(+bytes: List<&2, U32>,
+    evidence: {AES.bytes_valid(bytes) == True{} : Bool}) ->
+    {Maybe.is_some(&0, {AES.bytes_valid(bytes) == True{} : Bool},
+        AES.aes_bytes_valid_proof(bytes)) == True{} : Bool}:
+    Equal.trans(Bool,
+        Maybe.is_some(&0, {AES.bytes_valid(bytes) == True{} : Bool},
+            AES.aes_bytes_valid_proof(bytes)),
+        AES.bytes_valid(bytes), True{},
+        aes_bytes_valid_status(bytes, AES.bytes_valid(bytes), {==}),
+        evidence)
+def L.aes256gcm_accepts_32_byte_key(bytes, size, valid):
+    +size_copy = size
+    +valid_copy = valid
+    AESConstructorProof.key_accepts(bytes, size_copy, valid_copy,
+      AES.aes_nat_eq_proof(List.length(&2, U32, bytes), 32n),
+      AES.aes_bytes_valid_proof(bytes),
+      aes_nat_eq_is_some(List.length(&2, U32, bytes), 32n, size_copy),
+      aes_bytes_cert_is_some(bytes, valid_copy))
+
+def L.aes256gcm_accepts_12_byte_nonce(bytes, size, valid):
+    +size_copy = size
+    +valid_copy = valid
+    AESConstructorProof.nonce_accepts(bytes, size_copy, valid_copy,
+      AES.aes_nat_eq_proof(List.length(&2, U32, bytes), 12n),
+      AES.aes_bytes_valid_proof(bytes),
+      aes_nat_eq_is_some(List.length(&2, U32, bytes), 12n, size_copy),
+      aes_bytes_cert_is_some(bytes, valid_copy))
+
+def L.aes256gcm_encrypts_valid_input(key, nonce, aad, plaintext, aad_ok,
+    plaintext_ok):
+    AESEncryptProof.valid_input_is_done(key, nonce, aad, plaintext, aad_ok,
+        plaintext_ok)
+
+def L.aes256gcm_preserves_nonce(key, nonce, aad, plaintext, envelope,
+    encrypted):
+    AESEncryptProof.preserves_nonce(key, nonce, aad, plaintext, envelope,
+        encrypted)
+
+def L.aes256gcm_preserves_plaintext_length(key, nonce, aad, plaintext,
+    envelope, encrypted):
+    AESEncryptProof.successful_encrypt_preserves_length(key, nonce, aad,
+        plaintext, envelope, encrypted)
+
+def L.aes256gcm_envelope_is_canonical(text, envelope, parsed):
+    AESCanonicalProof.canonical_sound(text,
+        AES.parse_fields(String.split(text, Chr{46})), envelope, parsed)
+
+def L.aes256gcm_envelope_roundtrip(envelope):
+    AESIdentityProof.exact_roundtrip(envelope)
+
+def aes_key_from_no_size(+bytes: List<&2, U32>,
+    valid: Maybe<&0, {AES.bytes_valid(bytes) == True{} : Bool}>) ->
+    {AES.key_from_proofs(bytes, None{}, valid) == Fail{AES.InvalidKey{}} :
+      Result<&2, &2, AES.Error, AES.SecretKey>}:
+    {==}
+
+def aes_key_from_no_valid(+bytes: List<&2, U32>,
+    size: Maybe<&0, {List.length(&2, U32, bytes) == 32n : Nat}>) ->
+    {AES.key_from_proofs(bytes, size, None{}) == Fail{AES.InvalidKey{}} :
+      Result<&2, &2, AES.Error, AES.SecretKey>}:
+    match size:
+        case None{}: {==}
+        case Some{size}: {==}
+
+def L.aes256gcm_rejects_wrong_key_length(bytes, size):
+    Equal.trans(Result<&2, &2, AES.Error, AES.SecretKey>,
+      AES.key_impl(bytes),
+      AES.key_from_proofs(bytes, None{}, AES.aes_bytes_valid_proof(bytes)),
+      Fail{AES.InvalidKey{}},
+      Equal.cong(Maybe<&0, {List.length(&2, U32, bytes) == 32n : Nat}>,
+        Result<&2, &2, AES.Error, AES.SecretKey>,
+        maybe_size => AES.key_from_proofs(bytes, maybe_size,
+          AES.aes_bytes_valid_proof(bytes)),
+        AES.aes_nat_eq_proof(List.length(&2, U32, bytes), 32n), None{},
+        aes_nat_eq_none_if_ne(List.length(&2, U32, bytes), 32n, size)),
+      aes_key_from_no_size(bytes, AES.aes_bytes_valid_proof(bytes)))
+
+def L.aes256gcm_rejects_non_byte_key(bytes, invalid):
+    Equal.trans(Result<&2, &2, AES.Error, AES.SecretKey>,
+      AES.key_impl(bytes),
+      AES.key_from_proofs(bytes,
+        AES.aes_nat_eq_proof(List.length(&2, U32, bytes), 32n), None{}),
+      Fail{AES.InvalidKey{}},
+      Equal.cong(Maybe<&0, {AES.bytes_valid(bytes) == True{} : Bool}>,
+        Result<&2, &2, AES.Error, AES.SecretKey>,
+        maybe_valid => AES.key_from_proofs(bytes,
+          AES.aes_nat_eq_proof(List.length(&2, U32, bytes), 32n),
+          maybe_valid),
+        AES.aes_bytes_valid_proof(bytes), None{},
+        aes_bytes_valid_none_if_false(bytes, invalid)),
+      aes_key_from_no_valid(bytes,
+        AES.aes_nat_eq_proof(List.length(&2, U32, bytes), 32n)))
+
+def aes_nonce_from_no_size(+bytes: List<&2, U32>,
+    valid: Maybe<&0, {AES.bytes_valid(bytes) == True{} : Bool}>) ->
+    {AES.nonce_from_proofs(bytes, None{}, valid) == Fail{AES.InvalidNonce{}} :
+      Result<&2, &2, AES.Error, AES.Nonce>}:
+    {==}
+
+def aes_nonce_from_no_valid(+bytes: List<&2, U32>,
+    size: Maybe<&0, {List.length(&2, U32, bytes) == 12n : Nat}>) ->
+    {AES.nonce_from_proofs(bytes, size, None{}) == Fail{AES.InvalidNonce{}} :
+      Result<&2, &2, AES.Error, AES.Nonce>}:
+    match size:
+        case None{}: {==}
+        case Some{size}: {==}
+
+def L.aes256gcm_rejects_wrong_nonce_length(bytes, size):
+    Equal.trans(Result<&2, &2, AES.Error, AES.Nonce>,
+      AES.nonce_impl(bytes),
+      AES.nonce_from_proofs(bytes, None{}, AES.aes_bytes_valid_proof(bytes)),
+      Fail{AES.InvalidNonce{}},
+      Equal.cong(Maybe<&0, {List.length(&2, U32, bytes) == 12n : Nat}>,
+        Result<&2, &2, AES.Error, AES.Nonce>,
+        maybe_size => AES.nonce_from_proofs(bytes, maybe_size,
+          AES.aes_bytes_valid_proof(bytes)),
+        AES.aes_nat_eq_proof(List.length(&2, U32, bytes), 12n), None{},
+        aes_nat_eq_none_if_ne(List.length(&2, U32, bytes), 12n, size)),
+      aes_nonce_from_no_size(bytes, AES.aes_bytes_valid_proof(bytes)))
+
+def L.aes256gcm_rejects_non_byte_nonce(bytes, invalid):
+    Equal.trans(Result<&2, &2, AES.Error, AES.Nonce>,
+      AES.nonce_impl(bytes),
+      AES.nonce_from_proofs(bytes,
+        AES.aes_nat_eq_proof(List.length(&2, U32, bytes), 12n), None{}),
+      Fail{AES.InvalidNonce{}},
+      Equal.cong(Maybe<&0, {AES.bytes_valid(bytes) == True{} : Bool}>,
+        Result<&2, &2, AES.Error, AES.Nonce>,
+        maybe_valid => AES.nonce_from_proofs(bytes,
+          AES.aes_nat_eq_proof(List.length(&2, U32, bytes), 12n),
+          maybe_valid),
+        AES.aes_bytes_valid_proof(bytes), None{},
+        aes_bytes_valid_none_if_false(bytes, invalid)),
+      aes_nonce_from_no_valid(bytes,
+        AES.aes_nat_eq_proof(List.length(&2, U32, bytes), 12n)))
+
+def encrypt_invalid_plaintext(key: AES.SecretKey, nonce: AES.Nonce,
+    +aad: List<&2, U32>, +plaintext: List<&2, U32>, aad_ok: Bool) ->
+    {AES.encrypt_checked(key, nonce, aad, plaintext, aad_ok, False{}) ==
+      Fail{AES.InvalidBytes{}} : Result<&2, &2, AES.Error, AES.Envelope>}:
+    match aad_ok:
+        case True{}: {==}
+        case False{}: {==}
+
+def encrypt_using_plaintext_validity(key: AES.SecretKey, nonce: AES.Nonce,
+    +aad: List<&2, U32>, +plaintext: List<&2, U32>, plaintext_ok: Bool) ->
+    Result<&2, &2, AES.Error, AES.Envelope>:
+    AES.encrypt_checked(key, nonce, aad, plaintext,
+        AES.aad_valid(aad), plaintext_ok)
+
+def L.aes256gcm_rejects_invalid_plaintext(key, nonce, aad, plaintext, valid):
+    Equal.trans(Result<&2, &2, AES.Error, AES.Envelope>,
+      AES.encrypt_impl(key, nonce, aad, plaintext),
+      encrypt_using_plaintext_validity(key, nonce, aad, plaintext, False{}),
+      Fail{AES.InvalidBytes{}},
+      Equal.cong(Bool, Result<&2, &2, AES.Error, AES.Envelope>,
+        plaintext_ok => encrypt_using_plaintext_validity(
+            key, nonce, aad, plaintext, plaintext_ok),
+        AES.plaintext_valid(plaintext), False{}, valid),
+      encrypt_invalid_plaintext(key, nonce, aad, plaintext,
+        AES.aad_valid(aad)))
+
+def encrypt_invalid_aad(key: AES.SecretKey, nonce: AES.Nonce,
+    +aad: List<&2, U32>, +plaintext: List<&2, U32>, plaintext_ok: Bool) ->
+    {AES.encrypt_checked(key, nonce, aad, plaintext, False{}, plaintext_ok) ==
+      Fail{AES.InvalidBytes{}} : Result<&2, &2, AES.Error, AES.Envelope>}:
+    match plaintext_ok:
+        case True{}: {==}
+        case False{}: {==}
+
+def encrypt_using_aad_validity(key: AES.SecretKey, nonce: AES.Nonce,
+    +aad: List<&2, U32>, +plaintext: List<&2, U32>, aad_ok: Bool) ->
+    Result<&2, &2, AES.Error, AES.Envelope>:
+    AES.encrypt_checked(key, nonce, aad, plaintext, aad_ok,
+        AES.plaintext_valid(plaintext))
+
+def L.aes256gcm_rejects_invalid_aad(key, nonce, aad, plaintext, valid):
+    Equal.trans(Result<&2, &2, AES.Error, AES.Envelope>,
+      AES.encrypt_impl(key, nonce, aad, plaintext),
+      encrypt_using_aad_validity(key, nonce, aad, plaintext, False{}),
+      Fail{AES.InvalidBytes{}},
+      Equal.cong(Bool, Result<&2, &2, AES.Error, AES.Envelope>,
+        aad_ok => encrypt_using_aad_validity(key, nonce, aad, plaintext, aad_ok),
+        AES.aad_valid(aad), False{}, valid),
+      encrypt_invalid_aad(key, nonce, aad, plaintext,
+        AES.plaintext_valid(plaintext)))
+
+def decrypt_invalid_aad(key: AES.SecretKey, +aad: List<&2, U32>,
+    +envelope: AES.Envelope, ciphertext_ok: Bool) ->
+    {AES.decrypt_checked(key, aad, envelope, False{}, ciphertext_ok) ==
+      Fail{AES.InvalidBytes{}} :
+      Result<&2, &2, AES.Error, List<&2, U32>>}:
+    match ciphertext_ok:
+        case True{}: {==}
+        case False{}: {==}
+
+def decrypt_using_aad_validity(key: AES.SecretKey, +aad: List<&2, U32>,
+    +envelope: AES.Envelope, aad_ok: Bool) ->
+    Result<&2, &2, AES.Error, List<&2, U32>>:
+    AES.decrypt_checked(key, aad, envelope, aad_ok,
+        AES.plaintext_valid(AES.ciphertext(envelope)))
+
+def L.aes256gcm_decrypt_rejects_invalid_aad(key, aad, envelope, valid):
+    Equal.trans(Result<&2, &2, AES.Error, List<&2, U32>>,
+      AES.decrypt_impl(key, aad, envelope),
+      decrypt_using_aad_validity(key, aad, envelope, False{}),
+      Fail{AES.InvalidBytes{}},
+      Equal.cong(Bool, Result<&2, &2, AES.Error, List<&2, U32>>,
+        aad_ok => decrypt_using_aad_validity(key, aad, envelope, aad_ok),
+        AES.aad_valid(aad), False{}, valid),
+      decrypt_invalid_aad(key, aad, envelope,
+        AES.plaintext_valid(AES.ciphertext(envelope))))
+
+def L.aes256gcm_roundtrip(key, nonce, aad, plaintext, envelope, encrypted):
+    AESEncryptProof.successful_encrypt_decrypt_roundtrip(key, nonce, aad,
+        plaintext, envelope, encrypted)
+
+def L.aes256gcm_rejects_changed_tag(key, nonce, aad, plaintext, envelope,
+    tampered, encrypted, same_nonce, same_ciphertext, changed_tag):
+    AESTamperProof.rejects_changed_tag(key, nonce, aad, plaintext, envelope,
+        tampered, encrypted,
+        Equal.cong(AES.Nonce, List<&2, U32>, AES.raw_nonce_bytes,
+            AES.envelope_nonce(tampered), AES.envelope_nonce(envelope),
+            same_nonce), same_ciphertext, changed_tag)
+
+def L.aes256gcm_nist_canonical_encoding():
+    {==}
+
+def L.aes256gcm_nist_empty_encrypt():
+    {==}
+
+def L.aes256gcm_nist_empty_decrypt():
+    {==}
+
+def L.aes256gcm_nist_canonical_parsing():
+    {==}
+
+def L.aes256gcm_nist_multiblock_encrypt():
+    {==}
+
+def L.aes256gcm_nist_multiblock_decrypt():
+    {==}
+
+def L.aes256gcm_nist_aad_only_encrypt():
+    {==}
+
+def L.aes256gcm_nist_aad_only_decrypt():
+    {==}
+
+def L.aes256gcm_nist_aad_and_multiblock_encrypt():
+    {==}
+
+def L.aes256gcm_nist_aad_and_multiblock_decrypt():
+    {==}
+
+def L.aes256gcm_nist_partial_block_encrypt():
+    {==}
+
+def L.aes256gcm_nist_partial_block_decrypt():
     {==}
 
 def L.aes256gcm_nist_rejects_changed_aad():

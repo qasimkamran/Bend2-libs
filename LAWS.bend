@@ -280,39 +280,39 @@ law url_component_utf8:
 
 law aes256gcm_accepts_32_byte_key:
     for +bytes: List<&2, U32>
-    for -size: {List.length(&2, U32, bytes) == 32n : Nat}
-    for -valid: {AES.bytes_valid(bytes) == True{} : Bool}
+    for size: {List.length(&2, U32, bytes) == 32n : Nat}
+    for valid: {AES.bytes_valid(bytes) == True{} : Bool}
     {AES.key(bytes) == Done{AES.SecretKey{bytes, size, valid}} :
         Result<&2, &2, AES.Error, AES.SecretKey>}
 
 law aes256gcm_rejects_wrong_key_length:
-    for bytes: List<&2, U32>
-    for -size: {List.length(&2, U32, bytes) != 32n : Nat}
+    for +bytes: List<&2, U32>
+    for size: {List.length(&2, U32, bytes) != 32n : Nat}
     {AES.key(bytes) == Fail{AES.InvalidKey{}} :
         Result<&2, &2, AES.Error, AES.SecretKey>}
 
 law aes256gcm_rejects_non_byte_key:
-    for bytes: List<&2, U32>
-    for -valid: {AES.bytes_valid(bytes) == False{} : Bool}
+    for +bytes: List<&2, U32>
+    for valid: {AES.bytes_valid(bytes) == False{} : Bool}
     {AES.key(bytes) == Fail{AES.InvalidKey{}} :
         Result<&2, &2, AES.Error, AES.SecretKey>}
 
 law aes256gcm_accepts_12_byte_nonce:
     for +bytes: List<&2, U32>
-    for -size: {List.length(&2, U32, bytes) == 12n : Nat}
-    for -valid: {AES.bytes_valid(bytes) == True{} : Bool}
+    for size: {List.length(&2, U32, bytes) == 12n : Nat}
+    for valid: {AES.bytes_valid(bytes) == True{} : Bool}
     {AES.nonce(bytes) == Done{AES.Nonce{bytes, size, valid}} :
         Result<&2, &2, AES.Error, AES.Nonce>}
 
 law aes256gcm_rejects_wrong_nonce_length:
-    for bytes: List<&2, U32>
-    for -size: {List.length(&2, U32, bytes) != 12n : Nat}
+    for +bytes: List<&2, U32>
+    for size: {List.length(&2, U32, bytes) != 12n : Nat}
     {AES.nonce(bytes) == Fail{AES.InvalidNonce{}} :
         Result<&2, &2, AES.Error, AES.Nonce>}
 
 law aes256gcm_rejects_non_byte_nonce:
-    for bytes: List<&2, U32>
-    for -valid: {AES.bytes_valid(bytes) == False{} : Bool}
+    for +bytes: List<&2, U32>
+    for valid: {AES.bytes_valid(bytes) == False{} : Bool}
     {AES.nonce(bytes) == Fail{AES.InvalidNonce{}} :
         Result<&2, &2, AES.Error, AES.Nonce>}
 
@@ -326,34 +326,34 @@ law aes256gcm_encrypts_valid_input:
     for nonce: AES.Nonce
     for aad: List<&2, U32>
     for plaintext: List<&2, U32>
-    for -aad_ok: {AES.aad_valid(aad) == True{} : Bool}
-    for -plaintext_ok: {AES.plaintext_valid(plaintext) == True{} : Bool}
+    for aad_ok: {AES.aad_valid(aad) == True{} : Bool}
+    for plaintext_ok: {AES.plaintext_valid(plaintext) == True{} : Bool}
     {Result.is_done(&2, &2, AES.Error, AES.Envelope,
         AES.encrypt(key, nonce, aad, plaintext)) == True{} : Bool}
 
 law aes256gcm_rejects_invalid_plaintext:
-    for key: AES.SecretKey
-    for nonce: AES.Nonce
-    for aad: List<&2, U32>
-    for plaintext: List<&2, U32>
-    for -valid: {AES.plaintext_valid(plaintext) == False{} : Bool}
+    for +key: AES.SecretKey
+    for +nonce: AES.Nonce
+    for +aad: List<&2, U32>
+    for +plaintext: List<&2, U32>
+    for valid: {AES.plaintext_valid(plaintext) == False{} : Bool}
     {AES.encrypt(key, nonce, aad, plaintext) == Fail{AES.InvalidBytes{}} :
         Result<&2, &2, AES.Error, AES.Envelope>}
 
 law aes256gcm_rejects_invalid_aad:
-    for key: AES.SecretKey
-    for nonce: AES.Nonce
-    for aad: List<&2, U32>
-    for plaintext: List<&2, U32>
-    for -valid: {AES.aad_valid(aad) == False{} : Bool}
+    for +key: AES.SecretKey
+    for +nonce: AES.Nonce
+    for +aad: List<&2, U32>
+    for +plaintext: List<&2, U32>
+    for valid: {AES.aad_valid(aad) == False{} : Bool}
     {AES.encrypt(key, nonce, aad, plaintext) == Fail{AES.InvalidBytes{}} :
         Result<&2, &2, AES.Error, AES.Envelope>}
 
 law aes256gcm_decrypt_rejects_invalid_aad:
-    for key: AES.SecretKey
-    for aad: List<&2, U32>
-    for envelope: AES.Envelope
-    for -valid: {AES.aad_valid(aad) == False{} : Bool}
+    for +key: AES.SecretKey
+    for +aad: List<&2, U32>
+    for +envelope: AES.Envelope
+    for valid: {AES.aad_valid(aad) == False{} : Bool}
     {AES.decrypt(key, aad, envelope) == Fail{AES.InvalidBytes{}} :
         Result<&2, &2, AES.Error, List<&2, U32>>}
 
@@ -363,7 +363,7 @@ law aes256gcm_roundtrip:
     for +aad: List<&2, U32>
     for +plaintext: List<&2, U32>
     for +envelope: AES.Envelope
-    for -encrypted: {AES.encrypt(key, nonce, aad, plaintext) == Done{envelope} :
+    for encrypted: {AES.encrypt(key, nonce, aad, plaintext) == Done{envelope} :
         Result<&2, &2, AES.Error, AES.Envelope>}
     {AES.decrypt(key, aad, envelope) == Done{plaintext} :
         Result<&2, &2, AES.Error, List<&2, U32>>}
@@ -374,7 +374,7 @@ law aes256gcm_preserves_nonce:
     for +aad: List<&2, U32>
     for +plaintext: List<&2, U32>
     for +envelope: AES.Envelope
-    for -encrypted: {AES.encrypt(key, nonce, aad, plaintext) == Done{envelope} :
+    for encrypted: {AES.encrypt(key, nonce, aad, plaintext) == Done{envelope} :
         Result<&2, &2, AES.Error, AES.Envelope>}
     {AES.envelope_nonce(envelope) == nonce : AES.Nonce}
 
@@ -384,7 +384,7 @@ law aes256gcm_preserves_plaintext_length:
     for +aad: List<&2, U32>
     for +plaintext: List<&2, U32>
     for +envelope: AES.Envelope
-    for -encrypted: {AES.encrypt(key, nonce, aad, plaintext) == Done{envelope} :
+    for encrypted: {AES.encrypt(key, nonce, aad, plaintext) == Done{envelope} :
         Result<&2, &2, AES.Error, AES.Envelope>}
     {List.length(&2, U32, AES.ciphertext(envelope)) ==
         List.length(&2, U32, plaintext) : Nat}
@@ -399,13 +399,13 @@ law aes256gcm_rejects_changed_tag:
     for +plaintext: List<&2, U32>
     for +envelope: AES.Envelope
     for +tampered: AES.Envelope
-    for -encrypted: {AES.encrypt(key, nonce, aad, plaintext) == Done{envelope} :
+    for encrypted: {AES.encrypt(key, nonce, aad, plaintext) == Done{envelope} :
         Result<&2, &2, AES.Error, AES.Envelope>}
-    for -same_nonce: {AES.envelope_nonce(tampered) ==
+    for same_nonce: {AES.envelope_nonce(tampered) ==
         AES.envelope_nonce(envelope) : AES.Nonce}
-    for -same_ciphertext: {AES.ciphertext(tampered) ==
+    for same_ciphertext: {AES.ciphertext(tampered) ==
         AES.ciphertext(envelope) : List<&2, U32>}
-    for -changed_tag: {AES.tag_bytes(AES.envelope_tag(tampered)) !=
+    for changed_tag: {AES.tag_bytes(AES.envelope_tag(tampered)) !=
         AES.tag_bytes(AES.envelope_tag(envelope)) : List<&2, U32>}
     {AES.decrypt(key, aad, tampered) == Fail{AES.AuthenticationFailed{}} :
         Result<&2, &2, AES.Error, List<&2, U32>>}
@@ -422,7 +422,7 @@ law aes256gcm_envelope_roundtrip:
 law aes256gcm_envelope_is_canonical:
     for +text: String
     for +envelope: AES.Envelope
-    for -parsed: {AES.parse(text) == Done{envelope} :
+    for parsed: {AES.parse(text) == Done{envelope} :
         Result<&2, &2, AES.Error, AES.Envelope>}
     {AES.encode(envelope) == text : String}
 
