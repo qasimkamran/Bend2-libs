@@ -117,5 +117,5 @@ def suffix_1() ->
 
 def expanded_block_matches() ->
     {Core.aes256_encrypt_expanded(Key.words_60(), Block.block()) == Block.result() : List<&2, U32>}:
-    Bridge.rounds_input_matches(13n, Key.words_60(), Block.block(), Block.state_0(),
+    Bridge.expanded_block_from_initial(Key.words_60(), Block.block(), Block.state_0(),
         Block.result(), Block.initial_matches(), suffix_1())

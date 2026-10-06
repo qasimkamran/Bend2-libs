@@ -1,4 +1,5 @@
 import Base
+import ./AES256SBox.bend as SBox
 
 # Byte arithmetic. Inputs and outputs are represented by U32 values in [0,255].
 # Turn a boolean into an all-zero or all-one word to keep field arithmetic branchless.
@@ -36,11 +37,14 @@ def gf8_pow(a: U32, exp: U32) -> U32:
 def rotl8(+a: U32, +shift: Nat) -> U32:
     U32.and(255, U32.or(U32.shln(a, shift), U32.shrn(a, (8n - shift : Nat))))
 
-def aes_sbox(+x: U32) -> U32:
+def aes_sbox_algebraic(+x: U32) -> U32:
     +inv = gf8_pow(x, 254)
     U32.xor(U32.xor(U32.xor(U32.xor(inv, rotl8(inv, 1n)),
         rotl8(inv, 2n)), rotl8(inv, 3n)),
         U32.xor(rotl8(inv, 4n), 99))
+
+def aes_sbox(+x: U32) -> U32:
+    SBox.lookup(x)
 
 def aes_subword(+w: U32) -> U32:
     a b c d = aes_sbox(U32.shrn(w, 24n)) aes_sbox(U32.and(255, U32.shrn(w, 16n)))
@@ -229,7 +233,9 @@ def aes_rounds.go(fuel: Nat, +state: List<&2, U32>, +words: List<&2, U32>, +roun
             aes_rounds.go(p, aes_middle_round(state, words, round), words, (round + 1n : Nat))
 
 def aes256_encrypt_expanded(+words: List<&2, U32>, block: List<&2, U32>) -> List<&2, U32>:
-    aes_rounds.go(13n, aes_add_key(block, words, 0n), words, 1n)
+    match words:
+        case Nil{}: aes_rounds.go(13n, aes_add_key(block, words, 0n), words, 1n)
+        case head <> tail: aes_rounds.go(13n, aes_add_key(block, words, 0n), words, 1n)
 
 def aes256_encrypt_block(key: List<&2, U32>, block: List<&2, U32>) -> List<&2, U32>:
     aes256_encrypt_expanded(aes256_expand(key), block)
@@ -424,14 +430,23 @@ def ghash_nat_bytes.go(fuel: Nat, qr: Nat & Nat, +acc: List<&2, U32>) -> List<&2
 def ghash_nat_bytes(n: Nat) -> List<&2, U32>:
     ghash_nat_bytes.go(8n, Nat.divmod(n, 256n), Nil{})
 
-def ghash_auth_expanded(words: List<&2, U32>, +aad: List<&2, U32>, +ciphertext: List<&2, U32>) -> List<&2, U32>:
-    +h = aes256_encrypt_expanded(words, ([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] : List<&2, U32>))
+def ghash_auth_with_hash_impl(+h: List<&2, U32>, +aad: List<&2, U32>, +ciphertext: List<&2, U32>) -> List<&2, U32>:
     y0: List<&2, U32> = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     y1 = ghash_bytes(aad, h, y0)
     y2 = ghash_bytes(ciphertext, h, y1)
     aad_bits = ghash_nat_bytes((List.length(&2, U32, aad) * 8n : Nat))
     ct_bits = ghash_nat_bytes((List.length(&2, U32, ciphertext) * 8n : Nat))
     ghash_update(y2, h, List.append(&2, U32, aad_bits, ct_bits))
+
+# Do not expand a symbolic GHASH multiplication while transporting its hash.
+def ghash_auth_with_hash(+h: List<&2, U32>, +aad: List<&2, U32>, +ciphertext: List<&2, U32>) -> List<&2, U32>:
+    match aad:
+        case Nil{}: ghash_auth_with_hash_impl(h, aad, ciphertext)
+        case head <> tail: ghash_auth_with_hash_impl(h, aad, ciphertext)
+
+def ghash_auth_expanded(words: List<&2, U32>, aad: List<&2, U32>, ciphertext: List<&2, U32>) -> List<&2, U32>:
+    ghash_auth_with_hash(aes256_encrypt_expanded(words,
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]), aad, ciphertext)
 
 def gcm_j0(nonce: List<&2, U32>) -> List<&2, U32>:
     List.append(&2, U32, nonce, [0,0,0,1])
@@ -561,18 +576,38 @@ def gcm_zip_xor_valid(+bytes: List<&2, U32>, +stream: List<&2, U32>) ->
                     Bool.and(True{}, gcm_bytes_valid(gcm_zip_xor(tail, stream_tail))),
                     Bool.and(True{}, True{}), True{}, tail_changed, {==}))
 
+# A GCM tag is exactly sixteen bytes. Expose that shape without unfolding
+# abstract AES rounds or GHASH values when checking its certificates.
+def gcm_tag_parts(+auth: List<&2, U32>, +mask: List<&2, U32>) -> List<&2, U32>:
+    [U32.xor(aes_byte_at(mask, 0n), aes_byte_at(auth, 0n)),
+     U32.xor(aes_byte_at(mask, 1n), aes_byte_at(auth, 1n)),
+     U32.xor(aes_byte_at(mask, 2n), aes_byte_at(auth, 2n)),
+     U32.xor(aes_byte_at(mask, 3n), aes_byte_at(auth, 3n)),
+     U32.xor(aes_byte_at(mask, 4n), aes_byte_at(auth, 4n)),
+     U32.xor(aes_byte_at(mask, 5n), aes_byte_at(auth, 5n)),
+     U32.xor(aes_byte_at(mask, 6n), aes_byte_at(auth, 6n)),
+     U32.xor(aes_byte_at(mask, 7n), aes_byte_at(auth, 7n)),
+     U32.xor(aes_byte_at(mask, 8n), aes_byte_at(auth, 8n)),
+     U32.xor(aes_byte_at(mask, 9n), aes_byte_at(auth, 9n)),
+     U32.xor(aes_byte_at(mask, 10n), aes_byte_at(auth, 10n)),
+     U32.xor(aes_byte_at(mask, 11n), aes_byte_at(auth, 11n)),
+     U32.xor(aes_byte_at(mask, 12n), aes_byte_at(auth, 12n)),
+     U32.xor(aes_byte_at(mask, 13n), aes_byte_at(auth, 13n)),
+     U32.xor(aes_byte_at(mask, 14n), aes_byte_at(auth, 14n)),
+     U32.xor(aes_byte_at(mask, 15n), aes_byte_at(auth, 15n))]
+
 def gcm_tag_output_impl(+words: List<&2, U32>, nonce: List<&2, U32>,
                    aad: List<&2, U32>, ciphertext: List<&2, U32>) -> GcmTag:
     auth mask = ghash_auth_expanded(words, aad, ciphertext)
         aes256_encrypt_expanded(words, gcm_j0(nonce))
-    +raw_tag = ghash_xor_list(mask, auth, True{})
+    +raw_tag = gcm_tag_parts(auth, mask)
     GcmTag{gcm_mask_bytes(raw_tag), gcm_mask_bytes_valid(raw_tag), {==}}
 
-# Keep an abstract key schedule abstract during proof normalization. Both
-# branches run the same tag calculation, including the total empty-key case.
+# Keep an abstract key schedule abstract during proof normalization. Splitting
+# on the nonce leaves the key schedule abstract in both identical branches.
 def gcm_tag_output(+words: List<&2, U32>, nonce: List<&2, U32>,
                    aad: List<&2, U32>, ciphertext: List<&2, U32>) -> GcmTag:
-    match words:
+    match nonce:
         case Nil{}: gcm_tag_output_impl(words, nonce, aad, ciphertext)
         case head <> tail: gcm_tag_output_impl(words, nonce, aad, ciphertext)
 

@@ -507,10 +507,24 @@ def aes256gcm_nist_empty() -> AES.Envelope:
     AES.Envelope{aes256gcm_nist_nonce(), [],
         AES.Tag{[253, 44, 170, 22, 165, 131, 46, 118, 170, 19, 44, 20, 83, 238, 218, 126], {==}, {==}}, {==}}
 
+# Compare the protocol-visible result while leaving internal certificate terms
+# out of the NIST contract: success, nonce bytes, ciphertext, and tag bytes.
+def aes256gcm_nist_encrypt_observation(result: Result<&2, &2, AES.Error, AES.Envelope>) -> List<&2, U32>:
+    match result:
+        case Fail{error}: []
+        case Done{envelope}:
+            match envelope:
+                case AES.Envelope{nonce, ciphertext, tag, valid}:
+                    match nonce tag:
+                        case AES.Nonce{nonce_bytes, nonce_size, nonce_valid}
+                             AES.Tag{tag_bytes, tag_size, tag_valid}:
+                            List.append(&2, U32, nonce_bytes,
+                                List.append(&2, U32, ciphertext, tag_bytes))
+
 law aes256gcm_nist_empty_encrypt:
-    {AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
-        [], []) == Done{aes256gcm_nist_empty()} :
-        Result<&2, &2, AES.Error, AES.Envelope>}
+    {aes256gcm_nist_encrypt_observation(AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
+        [], [])) == aes256gcm_nist_encrypt_observation(Done{aes256gcm_nist_empty()}) :
+        List<&2, U32>}
 
 law aes256gcm_nist_empty_decrypt:
     {AES.decrypt(aes256gcm_nist_key(), [],
@@ -522,9 +536,9 @@ def aes256gcm_nist_multiblock() -> AES.Envelope:
         AES.Tag{[176, 148, 218, 197, 217, 52, 113, 189, 236, 26, 80, 34, 112, 227, 204, 108], {==}, {==}}, {==}}
 
 law aes256gcm_nist_multiblock_encrypt:
-    {AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
-        [], [217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57, 26, 175, 210, 85]) == Done{aes256gcm_nist_multiblock()} :
-        Result<&2, &2, AES.Error, AES.Envelope>}
+    {aes256gcm_nist_encrypt_observation(AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
+        [], [217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57, 26, 175, 210, 85])) == aes256gcm_nist_encrypt_observation(Done{aes256gcm_nist_multiblock()}) :
+        List<&2, U32>}
 
 law aes256gcm_nist_multiblock_decrypt:
     {AES.decrypt(aes256gcm_nist_key(), [],
@@ -536,9 +550,9 @@ def aes256gcm_nist_aad_only() -> AES.Envelope:
         AES.Tag{[222, 52, 182, 220, 212, 206, 226, 253, 190, 195, 206, 160, 26, 241, 238, 68], {==}, {==}}, {==}}
 
 law aes256gcm_nist_aad_only_encrypt:
-    {AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
-        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212], []) == Done{aes256gcm_nist_aad_only()} :
-        Result<&2, &2, AES.Error, AES.Envelope>}
+    {aes256gcm_nist_encrypt_observation(AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
+        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212], [])) == aes256gcm_nist_encrypt_observation(Done{aes256gcm_nist_aad_only()}) :
+        List<&2, U32>}
 
 law aes256gcm_nist_aad_only_decrypt:
     {AES.decrypt(aes256gcm_nist_key(), [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212],
@@ -550,9 +564,9 @@ def aes256gcm_nist_aad_and_multiblock() -> AES.Envelope:
         AES.Tag{[192, 109, 118, 243, 25, 48, 254, 243, 122, 202, 226, 62, 212, 101, 174, 98], {==}, {==}}, {==}}
 
 law aes256gcm_nist_aad_and_multiblock_encrypt:
-    {AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
-        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212], [217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57, 26, 175, 210, 85]) == Done{aes256gcm_nist_aad_and_multiblock()} :
-        Result<&2, &2, AES.Error, AES.Envelope>}
+    {aes256gcm_nist_encrypt_observation(AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
+        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212], [217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57, 26, 175, 210, 85])) == aes256gcm_nist_encrypt_observation(Done{aes256gcm_nist_aad_and_multiblock()}) :
+        List<&2, U32>}
 
 law aes256gcm_nist_aad_and_multiblock_decrypt:
     {AES.decrypt(aes256gcm_nist_key(), [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212],
@@ -564,9 +578,9 @@ def aes256gcm_nist_partial_block() -> AES.Envelope:
         AES.Tag{[224, 151, 25, 95, 69, 50, 218, 137, 95, 185, 23, 165, 165, 92, 106, 160], {==}, {==}}, {==}}
 
 law aes256gcm_nist_partial_block_encrypt:
-    {AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
-        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133], [217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57]) == Done{aes256gcm_nist_partial_block()} :
-        Result<&2, &2, AES.Error, AES.Envelope>}
+    {aes256gcm_nist_encrypt_observation(AES.encrypt(aes256gcm_nist_key(), aes256gcm_nist_nonce(),
+        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133], [217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57])) == aes256gcm_nist_encrypt_observation(Done{aes256gcm_nist_partial_block()}) :
+        List<&2, U32>}
 
 law aes256gcm_nist_partial_block_decrypt:
     {AES.decrypt(aes256gcm_nist_key(), [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133],

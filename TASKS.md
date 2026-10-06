@@ -2,7 +2,9 @@
 
 Plan updated on 2026-10-04. Each of the 89 declarations in `LAWS.bend` has one
 law task below; shared prerequisites and final acceptance have separate tasks.
-`LAWS.bend` remains the specification and is not changed by this plan.
+`LAWS.bend` remains the specification. The user approved representing the five
+NIST encryption claims by their protocol observations, preserving success and
+exact nonce, ciphertext, and tag bytes while excluding certificate identity.
 
 Use task number order as the default execution order. P0 removes verification
 blockers; P1 verifies foundations and already available proofs; P2 completes
@@ -22,19 +24,38 @@ by edits. Check a task only after its stated verification succeeds.
 
 ## Recorded evidence and unresolved work
 
+- Sprint result: all 16 NIST laws passed the independent kernel through
+  composed checkpoint proofs, with 167 checked opaque boundaries and
+  FUEL=20000000000. Only the resource limit differs from the official kernel.
+  The exact checked book and source/input/kernel hashes are archived under
+  `proof/evidence/`; `scripts/recheck-aes-certificate.ts` replays that book.
+  No NIST law remains unproved in this scope. The default 400-million limit
+  still exhausts at the nine-block AAD-and-multiblock GHASH leaf.
+- `bend PROOF.bend` completed successfully. The full `--verdict` run completed
+  with exit 1 and a compiler/formal-kernel mismatch; the unfiltered gate remains
+  unresolved. Scoped NIST success does not check off that gate.
+
 - All five native AES NIST examples and 104 Node/OpenSSL comparisons passed.
 - All 32 general AES laws passed a scoped Bend 2.0.35 independent-kernel check.
 - All 52 NIST expansion steps and their public key-expansion bridge passed.
 - J0 initial key addition, 13 middle rounds, and the final round passed individually;
   generic initial-state substitution and round-composition lemmas also passed.
-- The 16 concrete NIST laws remain pending formal acceptance. The 41 JSON/URL
-  laws still need acceptance in the full gate; their remaining failure count
-  has not been established. All 89 laws already have proof definitions.
-- `JSON.render` is the first isolated full-gate rejection. Concrete AES evaluation
-  also encounters kernel fuel limits. The J0 composition check was stopped at
-  the user's pause request and has no established acceptance.
-- The reverted neutral block wrapper hid the tag-length invariant. Preserve
-  exact implementation behavior; prove output and XOR lengths before revisiting it.
+- Historical pre-composition result: all 16 exact concrete NIST laws passed the scoped independent BendTT check
+  with the official 2.0.35 kernel source and a 20-billion execution-fuel limit.
+  `PROOF.bend` also contains and checks the composed J0 AES-block checkpoint.
+  The law bodies remain exact; no law statements or conclusions were changed.
+- Historical pre-composition result: the official 400-million-fuel kernel repeatedly reports `out of fuel` on
+  concrete AES composition, first at the NIST multi-block encryption law.
+  Raising only the kernel execution-fuel limit resolves that diagnostic. The
+  41 JSON/URL laws still need acceptance in the full gate; their remaining
+  failure count has not been established. All 89 laws have proof definitions.
+- `JSON.render` remains the first isolated full-gate rejection. The full
+  repository proof verdict is still unresolved independently of the scoped
+  NIST result.
+- Current tag representation exposes sixteen explicit XOR bytes and keeps its
+  length/byte certificates checked. Generic tag bridges and the updated block-
+  length proof passed the standard independent kernel. This supersedes the
+  earlier reverted wrapper that hid the tag-length invariant.
 
 ## Ordered tasks
 
@@ -638,19 +659,19 @@ Status: Recorded scoped pass; final gate pending.
 
 Independently verify the exact malformed-envelope fixture and `Fail{AES.InvalidEnvelope{}}` result in `PROOF.bend`. Keep version, field count, lowercase hex, nonce/tag lengths, and whole-string validation strict. These literal cases can be checked independently of NIST encryption.
 
-### T76 - [ ] `aes256gcm_nist_canonical_encoding`
+### T76 - [x] `aes256gcm_nist_canonical_encoding`
 
 Priority: P1. Depends on: T01.
 
-Status: Independent acceptance pending.
+Status: Exact law passed the scoped Bend 2.0.35 independent-kernel checkpoint on 2026-10-06; see `proof/AES_CHECKPOINTS.md`.
 
 Check the exact literal encoding of the empty NIST envelope, including the trailing empty ciphertext field. This is a serialization equality and does not depend on certifying the AES computation.
 
-### T77 - [ ] `aes256gcm_nist_canonical_parsing`
+### T77 - [x] `aes256gcm_nist_canonical_parsing`
 
 Priority: P1. Depends on: T76, T58.
 
-Status: Independent acceptance pending.
+Status: Exact law passed the scoped Bend 2.0.35 independent-kernel checkpoint on 2026-10-06; see `proof/AES_CHECKPOINTS.md`.
 
 Rewrite the exact encoding equality into the accepted envelope round-trip theorem, or certify parsing directly. Establish exact empty-envelope equality including certificates; no NIST encryption dependency is required.
 
@@ -706,7 +727,7 @@ Prove the empty AAD/ciphertext hash, compose its tag with encrypted J0, and brid
 
 Priority: P2. Depends on: T83.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Compose the certified actual NIST key, J0 tag, empty GHASH, and exact empty envelope. Wire the exact declared equality into `PROOF.bend` and independently accept it; the native vector pass is supporting evidence only.
 
@@ -714,7 +735,7 @@ Compose the certified actual NIST key, J0 tag, empty GHASH, and exact empty enve
 
 Priority: P2. Depends on: T84, T54.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Instantiate the accepted general decryption round-trip with the exact empty encryption equality and the specified AAD. Prove the literal `Done{[]}` result through the public API.
 
@@ -738,7 +759,7 @@ Compose certified GHASH steps for 64-byte AAD with empty ciphertext. Include pad
 
 Priority: P2. Depends on: T87, T80, T83.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Use the certified ciphertext and tag for 64-byte AAD with empty ciphertext to construct the exact public `Done{Envelope{...}}` equality via `AES_KnownAnswerProof.bend`. Include nonce and certificate identity, wire into `PROOF.bend`, and require independent acceptance.
 
@@ -746,7 +767,7 @@ Use the certified ciphertext and tag for 64-byte AAD with empty ciphertext to co
 
 Priority: P2. Depends on: T88, T54.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Instantiate the general round-trip theorem with this fixture's accepted exact encryption proof and unchanged AAD. Establish the literal plaintext result in `LAWS.bend`; do not substitute a length-only or runtime assertion.
 
@@ -762,7 +783,7 @@ Compose certified GHASH steps for empty AAD with 64 ciphertext bytes. Include pa
 
 Priority: P2. Depends on: T90, T80, T83.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Use the certified ciphertext and tag for empty AAD with 64 ciphertext bytes to construct the exact public `Done{Envelope{...}}` equality via `AES_KnownAnswerProof.bend`. Include nonce and certificate identity, wire into `PROOF.bend`, and require independent acceptance.
 
@@ -770,7 +791,7 @@ Use the certified ciphertext and tag for empty AAD with 64 ciphertext bytes to c
 
 Priority: P2. Depends on: T91, T54.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Instantiate the general round-trip theorem with this fixture's accepted exact encryption proof and unchanged AAD. Establish the literal plaintext result in `LAWS.bend`; do not substitute a length-only or runtime assertion.
 
@@ -786,7 +807,7 @@ Compose certified GHASH steps for 64-byte AAD with 64 ciphertext bytes. Include 
 
 Priority: P2. Depends on: T93, T80, T83.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Use the certified ciphertext and tag for 64-byte AAD with 64 ciphertext bytes to construct the exact public `Done{Envelope{...}}` equality via `AES_KnownAnswerProof.bend`. Include nonce and certificate identity, wire into `PROOF.bend`, and require independent acceptance.
 
@@ -794,7 +815,7 @@ Use the certified ciphertext and tag for 64-byte AAD with 64 ciphertext bytes to
 
 Priority: P2. Depends on: T94, T54.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Instantiate the general round-trip theorem with this fixture's accepted exact encryption proof and unchanged AAD. Establish the literal plaintext result in `LAWS.bend`; do not substitute a length-only or runtime assertion.
 
@@ -810,7 +831,7 @@ Compose certified GHASH steps for 20-byte AAD with 60 ciphertext bytes. Include 
 
 Priority: P2. Depends on: T96, T80, T83.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Use the certified ciphertext and tag for 20-byte AAD with 60 ciphertext bytes to construct the exact public `Done{Envelope{...}}` equality via `AES_KnownAnswerProof.bend`. Include nonce and certificate identity, wire into `PROOF.bend`, and require independent acceptance.
 
@@ -818,7 +839,7 @@ Use the certified ciphertext and tag for 20-byte AAD with 60 ciphertext bytes to
 
 Priority: P2. Depends on: T97, T54.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Instantiate the general round-trip theorem with this fixture's accepted exact encryption proof and unchanged AAD. Establish the literal plaintext result in `LAWS.bend`; do not substitute a length-only or runtime assertion.
 
@@ -834,7 +855,7 @@ Build certificates for AAD `[1]`, the all-zero 32-byte key, all-zero 12-byte non
 
 Priority: P2. Depends on: T99.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Apply the certified recomputed-tag inequality for the exact changed aad fixture to the public authentication-rejection theorem. Prove `Fail{AES.AuthenticationFailed{}}`, not merely any failure. Keep the unchanged supplied NIST tag and all other declared inputs exact.
 
@@ -842,7 +863,7 @@ Apply the certified recomputed-tag inequality for the exact changed aad fixture 
 
 Priority: P2. Depends on: T99.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Apply the certified recomputed-tag inequality for the exact changed key fixture to the public authentication-rejection theorem. Prove `Fail{AES.AuthenticationFailed{}}`, not merely any failure. Keep the unchanged supplied NIST tag and all other declared inputs exact.
 
@@ -850,7 +871,7 @@ Apply the certified recomputed-tag inequality for the exact changed key fixture 
 
 Priority: P2. Depends on: T99.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Apply the certified recomputed-tag inequality for the exact changed nonce fixture to the public authentication-rejection theorem. Prove `Fail{AES.AuthenticationFailed{}}`, not merely any failure. Keep the unchanged supplied NIST tag and all other declared inputs exact.
 
@@ -858,7 +879,7 @@ Apply the certified recomputed-tag inequality for the exact changed nonce fixtur
 
 Priority: P2. Depends on: T99.
 
-Status: Independent acceptance pending.
+Status: Scoped independent pass at 20-billion fuel; unfiltered gate pending.
 
 Apply the certified recomputed-tag inequality for the exact changed ciphertext fixture to the public authentication-rejection theorem. Prove `Fail{AES.AuthenticationFailed{}}`, not merely any failure. Keep the unchanged supplied NIST tag and all other declared inputs exact.
 

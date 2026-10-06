@@ -590,364 +590,364 @@ def suffix_59() ->
     {Core.aes_expand.go(1n, 59, 128, words_59()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(1n, 59, 128, words_59()),
         Core.aes_expand.go(0n, 60, 128, words_60()), words_60(),
-        Trace.expand_step_at(0n, 59, 128, words_59(), words_60(), 128, 60,
+        Trace.expand_step_number_at(0n, 1n, {==}, 59, 128, words_59(), words_60(), 128, 60,
             next_words_59(), next_rcon_59(), {==}), suffix_60())
 
 def suffix_58() ->
     {Core.aes_expand.go(2n, 58, 128, words_58()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(2n, 58, 128, words_58()),
         Core.aes_expand.go(1n, 59, 128, words_59()), words_60(),
-        Trace.expand_step_at(1n, 58, 128, words_58(), words_59(), 128, 59,
+        Trace.expand_step_number_at(1n, 2n, {==}, 58, 128, words_58(), words_59(), 128, 59,
             next_words_58(), next_rcon_58(), {==}), suffix_59())
 
 def suffix_57() ->
     {Core.aes_expand.go(3n, 57, 128, words_57()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(3n, 57, 128, words_57()),
         Core.aes_expand.go(2n, 58, 128, words_58()), words_60(),
-        Trace.expand_step_at(2n, 57, 128, words_57(), words_58(), 128, 58,
+        Trace.expand_step_number_at(2n, 3n, {==}, 57, 128, words_57(), words_58(), 128, 58,
             next_words_57(), next_rcon_57(), {==}), suffix_58())
 
 def suffix_56() ->
     {Core.aes_expand.go(4n, 56, 64, words_56()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(4n, 56, 64, words_56()),
         Core.aes_expand.go(3n, 57, 128, words_57()), words_60(),
-        Trace.expand_step_at(3n, 56, 64, words_56(), words_57(), 128, 57,
+        Trace.expand_step_number_at(3n, 4n, {==}, 56, 64, words_56(), words_57(), 128, 57,
             next_words_56(), next_rcon_56(), {==}), suffix_57())
 
 def suffix_55() ->
     {Core.aes_expand.go(5n, 55, 64, words_55()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(5n, 55, 64, words_55()),
         Core.aes_expand.go(4n, 56, 64, words_56()), words_60(),
-        Trace.expand_step_at(4n, 55, 64, words_55(), words_56(), 64, 56,
+        Trace.expand_step_number_at(4n, 5n, {==}, 55, 64, words_55(), words_56(), 64, 56,
             next_words_55(), next_rcon_55(), {==}), suffix_56())
 
 def suffix_54() ->
     {Core.aes_expand.go(6n, 54, 64, words_54()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(6n, 54, 64, words_54()),
         Core.aes_expand.go(5n, 55, 64, words_55()), words_60(),
-        Trace.expand_step_at(5n, 54, 64, words_54(), words_55(), 64, 55,
+        Trace.expand_step_number_at(5n, 6n, {==}, 54, 64, words_54(), words_55(), 64, 55,
             next_words_54(), next_rcon_54(), {==}), suffix_55())
 
 def suffix_53() ->
     {Core.aes_expand.go(7n, 53, 64, words_53()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(7n, 53, 64, words_53()),
         Core.aes_expand.go(6n, 54, 64, words_54()), words_60(),
-        Trace.expand_step_at(6n, 53, 64, words_53(), words_54(), 64, 54,
+        Trace.expand_step_number_at(6n, 7n, {==}, 53, 64, words_53(), words_54(), 64, 54,
             next_words_53(), next_rcon_53(), {==}), suffix_54())
 
 def suffix_52() ->
     {Core.aes_expand.go(8n, 52, 64, words_52()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(8n, 52, 64, words_52()),
         Core.aes_expand.go(7n, 53, 64, words_53()), words_60(),
-        Trace.expand_step_at(7n, 52, 64, words_52(), words_53(), 64, 53,
+        Trace.expand_step_number_at(7n, 8n, {==}, 52, 64, words_52(), words_53(), 64, 53,
             next_words_52(), next_rcon_52(), {==}), suffix_53())
 
 def suffix_51() ->
     {Core.aes_expand.go(9n, 51, 64, words_51()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(9n, 51, 64, words_51()),
         Core.aes_expand.go(8n, 52, 64, words_52()), words_60(),
-        Trace.expand_step_at(8n, 51, 64, words_51(), words_52(), 64, 52,
+        Trace.expand_step_number_at(8n, 9n, {==}, 51, 64, words_51(), words_52(), 64, 52,
             next_words_51(), next_rcon_51(), {==}), suffix_52())
 
 def suffix_50() ->
     {Core.aes_expand.go(10n, 50, 64, words_50()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(10n, 50, 64, words_50()),
         Core.aes_expand.go(9n, 51, 64, words_51()), words_60(),
-        Trace.expand_step_at(9n, 50, 64, words_50(), words_51(), 64, 51,
+        Trace.expand_step_number_at(9n, 10n, {==}, 50, 64, words_50(), words_51(), 64, 51,
             next_words_50(), next_rcon_50(), {==}), suffix_51())
 
 def suffix_49() ->
     {Core.aes_expand.go(11n, 49, 64, words_49()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(11n, 49, 64, words_49()),
         Core.aes_expand.go(10n, 50, 64, words_50()), words_60(),
-        Trace.expand_step_at(10n, 49, 64, words_49(), words_50(), 64, 50,
+        Trace.expand_step_number_at(10n, 11n, {==}, 49, 64, words_49(), words_50(), 64, 50,
             next_words_49(), next_rcon_49(), {==}), suffix_50())
 
 def suffix_48() ->
     {Core.aes_expand.go(12n, 48, 32, words_48()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(12n, 48, 32, words_48()),
         Core.aes_expand.go(11n, 49, 64, words_49()), words_60(),
-        Trace.expand_step_at(11n, 48, 32, words_48(), words_49(), 64, 49,
+        Trace.expand_step_number_at(11n, 12n, {==}, 48, 32, words_48(), words_49(), 64, 49,
             next_words_48(), next_rcon_48(), {==}), suffix_49())
 
 def suffix_47() ->
     {Core.aes_expand.go(13n, 47, 32, words_47()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(13n, 47, 32, words_47()),
         Core.aes_expand.go(12n, 48, 32, words_48()), words_60(),
-        Trace.expand_step_at(12n, 47, 32, words_47(), words_48(), 32, 48,
+        Trace.expand_step_number_at(12n, 13n, {==}, 47, 32, words_47(), words_48(), 32, 48,
             next_words_47(), next_rcon_47(), {==}), suffix_48())
 
 def suffix_46() ->
     {Core.aes_expand.go(14n, 46, 32, words_46()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(14n, 46, 32, words_46()),
         Core.aes_expand.go(13n, 47, 32, words_47()), words_60(),
-        Trace.expand_step_at(13n, 46, 32, words_46(), words_47(), 32, 47,
+        Trace.expand_step_number_at(13n, 14n, {==}, 46, 32, words_46(), words_47(), 32, 47,
             next_words_46(), next_rcon_46(), {==}), suffix_47())
 
 def suffix_45() ->
     {Core.aes_expand.go(15n, 45, 32, words_45()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(15n, 45, 32, words_45()),
         Core.aes_expand.go(14n, 46, 32, words_46()), words_60(),
-        Trace.expand_step_at(14n, 45, 32, words_45(), words_46(), 32, 46,
+        Trace.expand_step_number_at(14n, 15n, {==}, 45, 32, words_45(), words_46(), 32, 46,
             next_words_45(), next_rcon_45(), {==}), suffix_46())
 
 def suffix_44() ->
     {Core.aes_expand.go(16n, 44, 32, words_44()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(16n, 44, 32, words_44()),
         Core.aes_expand.go(15n, 45, 32, words_45()), words_60(),
-        Trace.expand_step_at(15n, 44, 32, words_44(), words_45(), 32, 45,
+        Trace.expand_step_number_at(15n, 16n, {==}, 44, 32, words_44(), words_45(), 32, 45,
             next_words_44(), next_rcon_44(), {==}), suffix_45())
 
 def suffix_43() ->
     {Core.aes_expand.go(17n, 43, 32, words_43()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(17n, 43, 32, words_43()),
         Core.aes_expand.go(16n, 44, 32, words_44()), words_60(),
-        Trace.expand_step_at(16n, 43, 32, words_43(), words_44(), 32, 44,
+        Trace.expand_step_number_at(16n, 17n, {==}, 43, 32, words_43(), words_44(), 32, 44,
             next_words_43(), next_rcon_43(), {==}), suffix_44())
 
 def suffix_42() ->
     {Core.aes_expand.go(18n, 42, 32, words_42()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(18n, 42, 32, words_42()),
         Core.aes_expand.go(17n, 43, 32, words_43()), words_60(),
-        Trace.expand_step_at(17n, 42, 32, words_42(), words_43(), 32, 43,
+        Trace.expand_step_number_at(17n, 18n, {==}, 42, 32, words_42(), words_43(), 32, 43,
             next_words_42(), next_rcon_42(), {==}), suffix_43())
 
 def suffix_41() ->
     {Core.aes_expand.go(19n, 41, 32, words_41()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(19n, 41, 32, words_41()),
         Core.aes_expand.go(18n, 42, 32, words_42()), words_60(),
-        Trace.expand_step_at(18n, 41, 32, words_41(), words_42(), 32, 42,
+        Trace.expand_step_number_at(18n, 19n, {==}, 41, 32, words_41(), words_42(), 32, 42,
             next_words_41(), next_rcon_41(), {==}), suffix_42())
 
 def suffix_40() ->
     {Core.aes_expand.go(20n, 40, 16, words_40()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(20n, 40, 16, words_40()),
         Core.aes_expand.go(19n, 41, 32, words_41()), words_60(),
-        Trace.expand_step_at(19n, 40, 16, words_40(), words_41(), 32, 41,
+        Trace.expand_step_number_at(19n, 20n, {==}, 40, 16, words_40(), words_41(), 32, 41,
             next_words_40(), next_rcon_40(), {==}), suffix_41())
 
 def suffix_39() ->
     {Core.aes_expand.go(21n, 39, 16, words_39()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(21n, 39, 16, words_39()),
         Core.aes_expand.go(20n, 40, 16, words_40()), words_60(),
-        Trace.expand_step_at(20n, 39, 16, words_39(), words_40(), 16, 40,
+        Trace.expand_step_number_at(20n, 21n, {==}, 39, 16, words_39(), words_40(), 16, 40,
             next_words_39(), next_rcon_39(), {==}), suffix_40())
 
 def suffix_38() ->
     {Core.aes_expand.go(22n, 38, 16, words_38()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(22n, 38, 16, words_38()),
         Core.aes_expand.go(21n, 39, 16, words_39()), words_60(),
-        Trace.expand_step_at(21n, 38, 16, words_38(), words_39(), 16, 39,
+        Trace.expand_step_number_at(21n, 22n, {==}, 38, 16, words_38(), words_39(), 16, 39,
             next_words_38(), next_rcon_38(), {==}), suffix_39())
 
 def suffix_37() ->
     {Core.aes_expand.go(23n, 37, 16, words_37()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(23n, 37, 16, words_37()),
         Core.aes_expand.go(22n, 38, 16, words_38()), words_60(),
-        Trace.expand_step_at(22n, 37, 16, words_37(), words_38(), 16, 38,
+        Trace.expand_step_number_at(22n, 23n, {==}, 37, 16, words_37(), words_38(), 16, 38,
             next_words_37(), next_rcon_37(), {==}), suffix_38())
 
 def suffix_36() ->
     {Core.aes_expand.go(24n, 36, 16, words_36()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(24n, 36, 16, words_36()),
         Core.aes_expand.go(23n, 37, 16, words_37()), words_60(),
-        Trace.expand_step_at(23n, 36, 16, words_36(), words_37(), 16, 37,
+        Trace.expand_step_number_at(23n, 24n, {==}, 36, 16, words_36(), words_37(), 16, 37,
             next_words_36(), next_rcon_36(), {==}), suffix_37())
 
 def suffix_35() ->
     {Core.aes_expand.go(25n, 35, 16, words_35()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(25n, 35, 16, words_35()),
         Core.aes_expand.go(24n, 36, 16, words_36()), words_60(),
-        Trace.expand_step_at(24n, 35, 16, words_35(), words_36(), 16, 36,
+        Trace.expand_step_number_at(24n, 25n, {==}, 35, 16, words_35(), words_36(), 16, 36,
             next_words_35(), next_rcon_35(), {==}), suffix_36())
 
 def suffix_34() ->
     {Core.aes_expand.go(26n, 34, 16, words_34()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(26n, 34, 16, words_34()),
         Core.aes_expand.go(25n, 35, 16, words_35()), words_60(),
-        Trace.expand_step_at(25n, 34, 16, words_34(), words_35(), 16, 35,
+        Trace.expand_step_number_at(25n, 26n, {==}, 34, 16, words_34(), words_35(), 16, 35,
             next_words_34(), next_rcon_34(), {==}), suffix_35())
 
 def suffix_33() ->
     {Core.aes_expand.go(27n, 33, 16, words_33()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(27n, 33, 16, words_33()),
         Core.aes_expand.go(26n, 34, 16, words_34()), words_60(),
-        Trace.expand_step_at(26n, 33, 16, words_33(), words_34(), 16, 34,
+        Trace.expand_step_number_at(26n, 27n, {==}, 33, 16, words_33(), words_34(), 16, 34,
             next_words_33(), next_rcon_33(), {==}), suffix_34())
 
 def suffix_32() ->
     {Core.aes_expand.go(28n, 32, 8, words_32()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(28n, 32, 8, words_32()),
         Core.aes_expand.go(27n, 33, 16, words_33()), words_60(),
-        Trace.expand_step_at(27n, 32, 8, words_32(), words_33(), 16, 33,
+        Trace.expand_step_number_at(27n, 28n, {==}, 32, 8, words_32(), words_33(), 16, 33,
             next_words_32(), next_rcon_32(), {==}), suffix_33())
 
 def suffix_31() ->
     {Core.aes_expand.go(29n, 31, 8, words_31()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(29n, 31, 8, words_31()),
         Core.aes_expand.go(28n, 32, 8, words_32()), words_60(),
-        Trace.expand_step_at(28n, 31, 8, words_31(), words_32(), 8, 32,
+        Trace.expand_step_number_at(28n, 29n, {==}, 31, 8, words_31(), words_32(), 8, 32,
             next_words_31(), next_rcon_31(), {==}), suffix_32())
 
 def suffix_30() ->
     {Core.aes_expand.go(30n, 30, 8, words_30()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(30n, 30, 8, words_30()),
         Core.aes_expand.go(29n, 31, 8, words_31()), words_60(),
-        Trace.expand_step_at(29n, 30, 8, words_30(), words_31(), 8, 31,
+        Trace.expand_step_number_at(29n, 30n, {==}, 30, 8, words_30(), words_31(), 8, 31,
             next_words_30(), next_rcon_30(), {==}), suffix_31())
 
 def suffix_29() ->
     {Core.aes_expand.go(31n, 29, 8, words_29()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(31n, 29, 8, words_29()),
         Core.aes_expand.go(30n, 30, 8, words_30()), words_60(),
-        Trace.expand_step_at(30n, 29, 8, words_29(), words_30(), 8, 30,
+        Trace.expand_step_number_at(30n, 31n, {==}, 29, 8, words_29(), words_30(), 8, 30,
             next_words_29(), next_rcon_29(), {==}), suffix_30())
 
 def suffix_28() ->
     {Core.aes_expand.go(32n, 28, 8, words_28()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(32n, 28, 8, words_28()),
         Core.aes_expand.go(31n, 29, 8, words_29()), words_60(),
-        Trace.expand_step_at(31n, 28, 8, words_28(), words_29(), 8, 29,
+        Trace.expand_step_number_at(31n, 32n, {==}, 28, 8, words_28(), words_29(), 8, 29,
             next_words_28(), next_rcon_28(), {==}), suffix_29())
 
 def suffix_27() ->
     {Core.aes_expand.go(33n, 27, 8, words_27()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(33n, 27, 8, words_27()),
         Core.aes_expand.go(32n, 28, 8, words_28()), words_60(),
-        Trace.expand_step_at(32n, 27, 8, words_27(), words_28(), 8, 28,
+        Trace.expand_step_number_at(32n, 33n, {==}, 27, 8, words_27(), words_28(), 8, 28,
             next_words_27(), next_rcon_27(), {==}), suffix_28())
 
 def suffix_26() ->
     {Core.aes_expand.go(34n, 26, 8, words_26()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(34n, 26, 8, words_26()),
         Core.aes_expand.go(33n, 27, 8, words_27()), words_60(),
-        Trace.expand_step_at(33n, 26, 8, words_26(), words_27(), 8, 27,
+        Trace.expand_step_number_at(33n, 34n, {==}, 26, 8, words_26(), words_27(), 8, 27,
             next_words_26(), next_rcon_26(), {==}), suffix_27())
 
 def suffix_25() ->
     {Core.aes_expand.go(35n, 25, 8, words_25()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(35n, 25, 8, words_25()),
         Core.aes_expand.go(34n, 26, 8, words_26()), words_60(),
-        Trace.expand_step_at(34n, 25, 8, words_25(), words_26(), 8, 26,
+        Trace.expand_step_number_at(34n, 35n, {==}, 25, 8, words_25(), words_26(), 8, 26,
             next_words_25(), next_rcon_25(), {==}), suffix_26())
 
 def suffix_24() ->
     {Core.aes_expand.go(36n, 24, 4, words_24()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(36n, 24, 4, words_24()),
         Core.aes_expand.go(35n, 25, 8, words_25()), words_60(),
-        Trace.expand_step_at(35n, 24, 4, words_24(), words_25(), 8, 25,
+        Trace.expand_step_number_at(35n, 36n, {==}, 24, 4, words_24(), words_25(), 8, 25,
             next_words_24(), next_rcon_24(), {==}), suffix_25())
 
 def suffix_23() ->
     {Core.aes_expand.go(37n, 23, 4, words_23()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(37n, 23, 4, words_23()),
         Core.aes_expand.go(36n, 24, 4, words_24()), words_60(),
-        Trace.expand_step_at(36n, 23, 4, words_23(), words_24(), 4, 24,
+        Trace.expand_step_number_at(36n, 37n, {==}, 23, 4, words_23(), words_24(), 4, 24,
             next_words_23(), next_rcon_23(), {==}), suffix_24())
 
 def suffix_22() ->
     {Core.aes_expand.go(38n, 22, 4, words_22()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(38n, 22, 4, words_22()),
         Core.aes_expand.go(37n, 23, 4, words_23()), words_60(),
-        Trace.expand_step_at(37n, 22, 4, words_22(), words_23(), 4, 23,
+        Trace.expand_step_number_at(37n, 38n, {==}, 22, 4, words_22(), words_23(), 4, 23,
             next_words_22(), next_rcon_22(), {==}), suffix_23())
 
 def suffix_21() ->
     {Core.aes_expand.go(39n, 21, 4, words_21()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(39n, 21, 4, words_21()),
         Core.aes_expand.go(38n, 22, 4, words_22()), words_60(),
-        Trace.expand_step_at(38n, 21, 4, words_21(), words_22(), 4, 22,
+        Trace.expand_step_number_at(38n, 39n, {==}, 21, 4, words_21(), words_22(), 4, 22,
             next_words_21(), next_rcon_21(), {==}), suffix_22())
 
 def suffix_20() ->
     {Core.aes_expand.go(40n, 20, 4, words_20()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(40n, 20, 4, words_20()),
         Core.aes_expand.go(39n, 21, 4, words_21()), words_60(),
-        Trace.expand_step_at(39n, 20, 4, words_20(), words_21(), 4, 21,
+        Trace.expand_step_number_at(39n, 40n, {==}, 20, 4, words_20(), words_21(), 4, 21,
             next_words_20(), next_rcon_20(), {==}), suffix_21())
 
 def suffix_19() ->
     {Core.aes_expand.go(41n, 19, 4, words_19()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(41n, 19, 4, words_19()),
         Core.aes_expand.go(40n, 20, 4, words_20()), words_60(),
-        Trace.expand_step_at(40n, 19, 4, words_19(), words_20(), 4, 20,
+        Trace.expand_step_number_at(40n, 41n, {==}, 19, 4, words_19(), words_20(), 4, 20,
             next_words_19(), next_rcon_19(), {==}), suffix_20())
 
 def suffix_18() ->
     {Core.aes_expand.go(42n, 18, 4, words_18()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(42n, 18, 4, words_18()),
         Core.aes_expand.go(41n, 19, 4, words_19()), words_60(),
-        Trace.expand_step_at(41n, 18, 4, words_18(), words_19(), 4, 19,
+        Trace.expand_step_number_at(41n, 42n, {==}, 18, 4, words_18(), words_19(), 4, 19,
             next_words_18(), next_rcon_18(), {==}), suffix_19())
 
 def suffix_17() ->
     {Core.aes_expand.go(43n, 17, 4, words_17()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(43n, 17, 4, words_17()),
         Core.aes_expand.go(42n, 18, 4, words_18()), words_60(),
-        Trace.expand_step_at(42n, 17, 4, words_17(), words_18(), 4, 18,
+        Trace.expand_step_number_at(42n, 43n, {==}, 17, 4, words_17(), words_18(), 4, 18,
             next_words_17(), next_rcon_17(), {==}), suffix_18())
 
 def suffix_16() ->
     {Core.aes_expand.go(44n, 16, 2, words_16()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(44n, 16, 2, words_16()),
         Core.aes_expand.go(43n, 17, 4, words_17()), words_60(),
-        Trace.expand_step_at(43n, 16, 2, words_16(), words_17(), 4, 17,
+        Trace.expand_step_number_at(43n, 44n, {==}, 16, 2, words_16(), words_17(), 4, 17,
             next_words_16(), next_rcon_16(), {==}), suffix_17())
 
 def suffix_15() ->
     {Core.aes_expand.go(45n, 15, 2, words_15()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(45n, 15, 2, words_15()),
         Core.aes_expand.go(44n, 16, 2, words_16()), words_60(),
-        Trace.expand_step_at(44n, 15, 2, words_15(), words_16(), 2, 16,
+        Trace.expand_step_number_at(44n, 45n, {==}, 15, 2, words_15(), words_16(), 2, 16,
             next_words_15(), next_rcon_15(), {==}), suffix_16())
 
 def suffix_14() ->
     {Core.aes_expand.go(46n, 14, 2, words_14()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(46n, 14, 2, words_14()),
         Core.aes_expand.go(45n, 15, 2, words_15()), words_60(),
-        Trace.expand_step_at(45n, 14, 2, words_14(), words_15(), 2, 15,
+        Trace.expand_step_number_at(45n, 46n, {==}, 14, 2, words_14(), words_15(), 2, 15,
             next_words_14(), next_rcon_14(), {==}), suffix_15())
 
 def suffix_13() ->
     {Core.aes_expand.go(47n, 13, 2, words_13()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(47n, 13, 2, words_13()),
         Core.aes_expand.go(46n, 14, 2, words_14()), words_60(),
-        Trace.expand_step_at(46n, 13, 2, words_13(), words_14(), 2, 14,
+        Trace.expand_step_number_at(46n, 47n, {==}, 13, 2, words_13(), words_14(), 2, 14,
             next_words_13(), next_rcon_13(), {==}), suffix_14())
 
 def suffix_12() ->
     {Core.aes_expand.go(48n, 12, 2, words_12()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(48n, 12, 2, words_12()),
         Core.aes_expand.go(47n, 13, 2, words_13()), words_60(),
-        Trace.expand_step_at(47n, 12, 2, words_12(), words_13(), 2, 13,
+        Trace.expand_step_number_at(47n, 48n, {==}, 12, 2, words_12(), words_13(), 2, 13,
             next_words_12(), next_rcon_12(), {==}), suffix_13())
 
 def suffix_11() ->
     {Core.aes_expand.go(49n, 11, 2, words_11()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(49n, 11, 2, words_11()),
         Core.aes_expand.go(48n, 12, 2, words_12()), words_60(),
-        Trace.expand_step_at(48n, 11, 2, words_11(), words_12(), 2, 12,
+        Trace.expand_step_number_at(48n, 49n, {==}, 11, 2, words_11(), words_12(), 2, 12,
             next_words_11(), next_rcon_11(), {==}), suffix_12())
 
 def suffix_10() ->
     {Core.aes_expand.go(50n, 10, 2, words_10()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(50n, 10, 2, words_10()),
         Core.aes_expand.go(49n, 11, 2, words_11()), words_60(),
-        Trace.expand_step_at(49n, 10, 2, words_10(), words_11(), 2, 11,
+        Trace.expand_step_number_at(49n, 50n, {==}, 10, 2, words_10(), words_11(), 2, 11,
             next_words_10(), next_rcon_10(), {==}), suffix_11())
 
 def suffix_9() ->
     {Core.aes_expand.go(51n, 9, 2, words_9()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(51n, 9, 2, words_9()),
         Core.aes_expand.go(50n, 10, 2, words_10()), words_60(),
-        Trace.expand_step_at(50n, 9, 2, words_9(), words_10(), 2, 10,
+        Trace.expand_step_number_at(50n, 51n, {==}, 9, 2, words_9(), words_10(), 2, 10,
             next_words_9(), next_rcon_9(), {==}), suffix_10())
 
 def suffix_8() ->
     {Core.aes_expand.go(52n, 8, 1, words_8()) == words_60() : List<&2, U32>}:
     Equal.trans(List<&2, U32>, Core.aes_expand.go(52n, 8, 1, words_8()),
         Core.aes_expand.go(51n, 9, 2, words_9()), words_60(),
-        Trace.expand_step_at(51n, 8, 1, words_8(), words_9(), 2, 9,
+        Trace.expand_step_number_at(51n, 52n, {==}, 8, 1, words_8(), words_9(), 2, 9,
             next_words_8(), next_rcon_8(), {==}), suffix_9())
 
 def expanded_words_matches() ->

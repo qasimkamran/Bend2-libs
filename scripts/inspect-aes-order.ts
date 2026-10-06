@@ -1,0 +1,11 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+const source = process.argv[2];
+const B = await import(pathToFileURL(path.resolve(source, "bend.ts")).href);
+const book = B.book_nil();
+await B.book_load(book, "proof/AES_NistBlockTraceProof.bend", "", new Map());
+const names = book.order.map((key: string) => B.name_key(key));
+console.log("Order entries", names.length);
+console.log("AES core begins at", names.findIndex((name: string) => name.includes("AES256GCMCore.aes_add_key")));
+console.log([...new Set(names.map((name: string) => name.slice(0, name.lastIndexOf("."))))].sort().join("\n"));
+console.log("Tail", names.slice(-30).join("\n"));

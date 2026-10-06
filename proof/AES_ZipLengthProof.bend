@@ -47,7 +47,9 @@ def zip_length_equal(+bytes: List<&2, U32>, +stream: List<&2, U32>,
 def encrypt_block_length(+words: List<&2, U32>, +counter: List<&2, U32>) ->
     {List.length(&2, U32, Core.aes256_encrypt_expanded(words, counter)) ==
      16n : Nat}:
-    {==}
+    match words:
+        case Nil{}: {==}
+        case head <> tail: {==}
 
 def nat_add_succ_right(+a: Nat, +b: Nat) ->
     {Nat.add(a, 1n+b) == 1n+Nat.add(a, b) : Nat}:

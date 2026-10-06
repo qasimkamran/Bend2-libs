@@ -49,6 +49,29 @@ def expand_step_at(+fuel: Nat, +i: U32, +rcon: U32, +words: List<&2, U32>,
         Equal.cong(U32, List<&2, U32>, value => Core.aes_expand.go(fuel, value, next_rcon, next_words),
             U32.add(i, 1), next_i, index_match))
 
+def expand_step_number_at(+fuel: Nat, +remaining: Nat,
+    fuel_match: {remaining == 1n+fuel : Nat},
+    +i: U32, +rcon: U32, +words: List<&2, U32>,
+    +next_words: List<&2, U32>, +next_rcon: U32, +next_i: U32,
+    words_match: {List.append(&2, U32, words, [next_word(i, rcon, words)]) == next_words : List<&2, U32>},
+    rcon_match: {Core.aes_rcon_kind(rcon, U32.is_eq(U32.mod(i, 8), 0)) == next_rcon : U32},
+    index_match: {U32.add(i, 1) == next_i : U32}) ->
+    {Core.aes_expand.go(remaining, i, rcon, words) ==
+     Core.aes_expand.go(fuel, next_i, next_rcon, next_words) : List<&2, U32>}:
+    Equal.trans(List<&2, U32>, Core.aes_expand.go(remaining, i, rcon, words),
+        Core.aes_expand.go(1n+fuel, i, rcon, words),
+        Core.aes_expand.go(fuel, next_i, next_rcon, next_words),
+        Equal.cong(Nat, List<&2, U32>, steps => Core.aes_expand.go(steps, i, rcon, words),
+            remaining, 1n+fuel, fuel_match),
+        expand_step_at(fuel, i, rcon, words, next_words, next_rcon, next_i,
+            words_match, rcon_match, index_match))
+
+def rounds_fuel_matches(+left: Nat, +right: Nat, +state: List<&2, U32>,
+    +words: List<&2, U32>, +round: Nat, same: {left == right : Nat}) ->
+    {Core.aes_rounds.go(left, state, words, round) ==
+     Core.aes_rounds.go(right, state, words, round) : List<&2, U32>}:
+    Equal.cong(Nat, List<&2, U32>, fuel => Core.aes_rounds.go(fuel, state, words, round), left, right, same)
+
 def rounds_step_at(+fuel: Nat, +state: List<&2, U32>, +words: List<&2, U32>,
     +round: Nat, +next_state: List<&2, U32>, +next_round: Nat,
     same: {Core.aes_middle_round(state, words, round) == next_state : List<&2, U32>},

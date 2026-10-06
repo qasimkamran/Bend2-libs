@@ -1,4 +1,5 @@
 ﻿import Base
+import ./proof/AES_NistInputProof.bend as AESNistInputProof
 import ./LAWS.bend as L
 import ./libs/JSON.bend as Json
 import ./libs/URL.bend as URL
@@ -9,6 +10,12 @@ import ./proof/AES_TamperProof.bend as AESTamperProof
 import ./proof/AES_CanonicalProof.bend as AESCanonicalProof
 import ./proof/AES_ConstructorProof.bend as AESConstructorProof
 import ./proof/AES_IdentityProof.bend as AESIdentityProof
+import ./proof/AES_NistKeyScheduleProof.bend as AESNistKeyScheduleProof
+import ./proof/AES_NistBlockComposeProof.bend as AESNistBlockComposeProof
+import ./proof/AES_NistBlockProof.bend as AESNistBlockProof
+import ./proof/AES_NistObservationProof.bend as AESNistObservationProof
+import ./proof/AES_NistVectorProof.bend as AESNistVectorProof
+import ./proof/AES_NistTamperVectorProof.bend as AESNistTamperVectorProof
 import ./proof/JSON_StringProof.bend as StringProof
 import ./proof/JSON_PrimitiveProof.bend as PrimitiveProof
 import ./proof/JSON_NumberLexProof.bend as NumberLexProof
@@ -700,46 +707,107 @@ def L.aes256gcm_nist_canonical_encoding():
     {==}
 
 def L.aes256gcm_nist_empty_encrypt():
-    {==}
+    AESNistInputProof.encrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_nonce(),
+        [], AESNistVectorProof.empty_aad(),
+        [], AESNistVectorProof.empty_plaintext(),
+        L.aes256gcm_nist_encrypt_observation(Done{L.aes256gcm_nist_empty()}),
+        {==}, {==}, AESNistVectorProof.empty_encrypt())
 
 def L.aes256gcm_nist_empty_decrypt():
-    {==}
+    AESNistInputProof.decrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_key(),
+        [], AESNistVectorProof.empty_aad(),
+        L.aes256gcm_nist_empty(), L.aes256gcm_nist_empty(), Done{AESNistVectorProof.empty_plaintext()},
+        {==}, {==}, {==}, AESNistVectorProof.empty_decrypt())
 
 def L.aes256gcm_nist_canonical_parsing():
     {==}
 
+# Keep the composed NIST AES block certificate in the law proof book. This
+# checkpoint proves the exact J0 AES result used by the empty-message vector.
+def aes256gcm_nist_j0_block_checkpoint() ->
+    {Core.aes256_encrypt_expanded(AESNistKeyScheduleProof.words_60(),
+        AESNistBlockProof.block()) ==
+     AESNistBlockProof.result() : List<&2, U32>}:
+    AESNistBlockComposeProof.expanded_block_matches()
+
 def L.aes256gcm_nist_multiblock_encrypt():
-    {==}
+    AESNistInputProof.encrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_nonce(),
+        [], AESNistVectorProof.multiblock_aad(),
+        [217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57, 26, 175, 210, 85], AESNistVectorProof.multiblock_plaintext(),
+        L.aes256gcm_nist_encrypt_observation(Done{L.aes256gcm_nist_multiblock()}),
+        {==}, {==}, AESNistVectorProof.multiblock_encrypt())
 
 def L.aes256gcm_nist_multiblock_decrypt():
-    {==}
+    AESNistInputProof.decrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_key(),
+        [], AESNistVectorProof.multiblock_aad(),
+        L.aes256gcm_nist_multiblock(), L.aes256gcm_nist_multiblock(), Done{AESNistVectorProof.multiblock_plaintext()},
+        {==}, {==}, {==}, AESNistVectorProof.multiblock_decrypt())
 
 def L.aes256gcm_nist_aad_only_encrypt():
-    {==}
+    AESNistInputProof.encrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_nonce(),
+        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212], AESNistVectorProof.aad_only_aad(),
+        [], AESNistVectorProof.aad_only_plaintext(),
+        L.aes256gcm_nist_encrypt_observation(Done{L.aes256gcm_nist_aad_only()}),
+        {==}, {==}, AESNistVectorProof.aad_only_encrypt())
 
 def L.aes256gcm_nist_aad_only_decrypt():
-    {==}
+    AESNistInputProof.decrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_key(),
+        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212], AESNistVectorProof.aad_only_aad(),
+        L.aes256gcm_nist_aad_only(), L.aes256gcm_nist_aad_only(), Done{AESNistVectorProof.aad_only_plaintext()},
+        {==}, {==}, {==}, AESNistVectorProof.aad_only_decrypt())
 
 def L.aes256gcm_nist_aad_and_multiblock_encrypt():
-    {==}
+    AESNistInputProof.encrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_nonce(),
+        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212], AESNistVectorProof.aad_and_multiblock_aad(),
+        [217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57, 26, 175, 210, 85], AESNistVectorProof.aad_and_multiblock_plaintext(),
+        L.aes256gcm_nist_encrypt_observation(Done{L.aes256gcm_nist_aad_and_multiblock()}),
+        {==}, {==}, AESNistVectorProof.aad_and_multiblock_encrypt())
 
 def L.aes256gcm_nist_aad_and_multiblock_decrypt():
-    {==}
+    AESNistInputProof.decrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_key(),
+        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133, 3, 185, 105, 157, 231, 133, 137, 90, 150, 253, 186, 175, 67, 177, 205, 127, 89, 142, 206, 35, 136, 27, 0, 227, 237, 3, 6, 136, 123, 12, 120, 94, 39, 232, 173, 63, 130, 35, 32, 113, 4, 114, 93, 212], AESNistVectorProof.aad_and_multiblock_aad(),
+        L.aes256gcm_nist_aad_and_multiblock(), L.aes256gcm_nist_aad_and_multiblock(), Done{AESNistVectorProof.aad_and_multiblock_plaintext()},
+        {==}, {==}, {==}, AESNistVectorProof.aad_and_multiblock_decrypt())
 
 def L.aes256gcm_nist_partial_block_encrypt():
-    {==}
+    AESNistInputProof.encrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_nonce(),
+        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133], AESNistVectorProof.partial_block_aad(),
+        [217, 49, 50, 37, 248, 132, 6, 229, 165, 89, 9, 197, 175, 245, 38, 154, 134, 167, 169, 83, 21, 52, 247, 218, 46, 76, 48, 61, 138, 49, 138, 114, 28, 60, 12, 149, 149, 104, 9, 83, 47, 207, 14, 36, 73, 166, 181, 37, 177, 106, 237, 245, 170, 13, 230, 87, 186, 99, 123, 57], AESNistVectorProof.partial_block_plaintext(),
+        L.aes256gcm_nist_encrypt_observation(Done{L.aes256gcm_nist_partial_block()}),
+        {==}, {==}, AESNistVectorProof.partial_block_encrypt())
 
 def L.aes256gcm_nist_partial_block_decrypt():
-    {==}
+    AESNistInputProof.decrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_key(),
+        [58, 215, 123, 180, 13, 122, 54, 96, 168, 158, 202, 243, 36, 102, 239, 151, 245, 211, 213, 133], AESNistVectorProof.partial_block_aad(),
+        L.aes256gcm_nist_partial_block(), L.aes256gcm_nist_partial_block(), Done{AESNistVectorProof.partial_block_plaintext()},
+        {==}, {==}, {==}, AESNistVectorProof.partial_block_decrypt())
 
 def L.aes256gcm_nist_rejects_changed_aad():
-    {==}
+    AESNistInputProof.decrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_key(),
+        [1], AESNistTamperVectorProof.changed_aad_aad(),
+        L.aes256gcm_nist_empty(), AESNistTamperVectorProof.changed_aad_envelope(),
+        Fail{AES.AuthenticationFailed{}}, {==}, {==}, {==},
+        AESNistTamperVectorProof.rejects_changed_aad())
 
 def L.aes256gcm_nist_rejects_changed_key():
-    {==}
+    AESNistInputProof.decrypt_inputs(AES.SecretKey{List.replicate(U32, 32n, 0), {==}, {==}}, AESNistTamperVectorProof.zero_key(),
+        [], AESNistTamperVectorProof.changed_key_aad(),
+        L.aes256gcm_nist_empty(), AESNistTamperVectorProof.changed_key_envelope(),
+        Fail{AES.AuthenticationFailed{}}, {==}, {==}, {==},
+        AESNistTamperVectorProof.rejects_changed_key())
 
 def L.aes256gcm_nist_rejects_changed_nonce():
-    {==}
+    AESNistInputProof.decrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_key(),
+        [], AESNistTamperVectorProof.changed_nonce_aad(),
+        AES.Envelope{AES.Nonce{List.replicate(U32, 12n, 0), {==}, {==}},
+            [], AES.Tag{[253, 44, 170, 22, 165, 131, 46, 118, 170, 19, 44, 20, 83, 238, 218, 126], {==}, {==}}, {==}}, AESNistTamperVectorProof.changed_nonce_envelope(),
+        Fail{AES.AuthenticationFailed{}}, {==}, {==}, {==},
+        AESNistTamperVectorProof.rejects_changed_nonce())
 
 def L.aes256gcm_nist_rejects_changed_ciphertext():
-    {==}
+    AESNistInputProof.decrypt_inputs(L.aes256gcm_nist_key(), L.aes256gcm_nist_key(),
+        [], AESNistTamperVectorProof.changed_ciphertext_aad(),
+        AES.Envelope{L.aes256gcm_nist_nonce(), [1],
+            AES.Tag{[253, 44, 170, 22, 165, 131, 46, 118, 170, 19, 44, 20, 83, 238, 218, 126], {==}, {==}}, {==}}, AESNistTamperVectorProof.changed_ciphertext_envelope(),
+        Fail{AES.AuthenticationFailed{}}, {==}, {==}, {==},
+        AESNistTamperVectorProof.rejects_changed_ciphertext())
