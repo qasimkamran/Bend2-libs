@@ -35,3 +35,12 @@ Run `bend PROOF.bend` to check the JSON, URL, and AES-256-GCM laws declared in `
 ## Wire package override
 
 libs/wire/ contains the vendored wire package and local TCP/TLS write deadline overrides, including its C and JavaScript effects, DNS module, and dependencies. See the wire notes in libs/wire/README.md for provenance and override details.
+
+## Direct HTTP/1.1 client
+
+`libs/DirectH1.bend` provides methods, repeated headers, binary bodies, verified
+TLS/mutual TLS, redirects, optional decompression, response limits, phase
+timeouts, connection pooling, and bounded parallel batches. DNS/decompression
+run in a compiled Bend helper that can be terminated on deadline. It reuses
+the pinned bend-kit HTTP codecs without HTTP/2 connection dispatch. See [DirectH1 API and limitations](libs/DirectH1.md)
+and [the usage example](usage/DirectH1.bend).
