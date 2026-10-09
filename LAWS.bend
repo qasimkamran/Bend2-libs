@@ -653,3 +653,8 @@ law aes256gcm_nist_rejects_changed_ciphertext:
 # envelope encoding and parsing. The arithmetic formatter keeps the existing
 # behavior for out-of-range nibble inputs as well. AES_EnvelopeProof checks
 # digit inversion and serialized envelope structure after formatting changes.
+
+# JSON number scanning collects exactly ASCII digits and - + . e E, stopping
+# before the first other character. The accumulator is reversed; the returned
+# suffix is untouched. Grammar validation remains the parser's separate step.
+# JSON_NumberScanProof checks delimiter, range, Unicode and accumulator cases.

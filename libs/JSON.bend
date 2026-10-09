@@ -486,28 +486,28 @@ def scan_string_machine(fuel: Nat, state: StringScanState) -> Result<&1, &1, Err
 def scan_string(+s: String) -> Result<&1, &1, Error, StringScan>:
     scan_string_machine((String.length(s) * 2n + 16n : Nat), ScanText{s, SNil{}})
 
-def scan_number(s: String, acc: String) -> StringScan:
-    match s:
-        case SNil{}:
-            StringScan{String.reverse(acc), SNil{}}
-        case SCon{h, t}:
-            match h:
-                case '-': scan_number(t, SCon{h, acc})
-                case '+': scan_number(t, SCon{h, acc})
-                case '.': scan_number(t, SCon{h, acc})
-                case 'e': scan_number(t, SCon{h, acc})
-                case 'E': scan_number(t, SCon{h, acc})
-                case '0': scan_number(t, SCon{h, acc})
-                case '1': scan_number(t, SCon{h, acc})
-                case '2': scan_number(t, SCon{h, acc})
-                case '3': scan_number(t, SCon{h, acc})
-                case '4': scan_number(t, SCon{h, acc})
-                case '5': scan_number(t, SCon{h, acc})
-                case '6': scan_number(t, SCon{h, acc})
-                case '7': scan_number(t, SCon{h, acc})
-                case '8': scan_number(t, SCon{h, acc})
-                case '9': scan_number(t, SCon{h, acc})
-                case _: StringScan{String.reverse(acc), SCon{h, t}}
+# Carry the next character classification as a parameter, so Bend can match
+# it directly while keeping one structurally decreasing recursive call.
+def scan_number_char(+character: Char) -> BoolType():
+    Char.is_digit(character) || Char.is_eq(character, '-') ||
+    Char.is_eq(character, '+') || Char.is_eq(character, '.') ||
+    Char.is_eq(character, 'e') || Char.is_eq(character, 'E')
+
+def scan_number_head(input: String) -> BoolType():
+    match input:
+        case SNil{}: False{}
+        case SCon{head, _}: scan_number_char(head)
+
+def scan_number.go(s: String, acc: String, valid: BoolType()) -> StringScan:
+    match s valid:
+        case SNil{} _: StringScan{String.reverse(acc), SNil{}}
+        case SCon{h, +t} True{}:
+            scan_number.go(t, SCon{h, acc}, scan_number_head(t))
+        case SCon{h, t} False{}:
+            StringScan{String.reverse(acc), SCon{h, t}}
+
+def scan_number(+s: String, acc: String) -> StringScan:
+    scan_number.go(s, acc, scan_number_head(s))
 
 type NumberChar is Data:
     NMinus{}
