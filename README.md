@@ -42,5 +42,7 @@ libs/wire/ contains the vendored wire package and local TCP/TLS write deadline o
 TLS/mutual TLS, redirects, optional decompression, response limits, phase
 timeouts, connection pooling, and bounded parallel batches. DNS/decompression
 run in a compiled Bend helper that can be terminated on deadline. It reuses
-the pinned bend-kit HTTP codecs without HTTP/2 connection dispatch. See [DirectH1 API and limitations](libs/DirectH1.md)
+the pinned bend-kit HTTP/1.1 definitions extracted into `libs/DirectH1Http.bend`,
+without importing the full HTTP/2 client graph. Callers must use that shared
+module for HTTP types. See [DirectH1 API and limitations](libs/DirectH1.md)
 and [the usage example](usage/DirectH1.bend).

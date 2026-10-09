@@ -642,3 +642,9 @@ law aes256gcm_nist_rejects_changed_ciphertext:
 # - Decoded allocation retains upstream's 16 MiB cap; smaller body caps are
 #   post-decode checks. Do not advertise them as decoder allocation limits.
 # - Concurrent batches own separate sockets and preserve result input order.
+
+# DirectH1 compilation boundary: DirectH1Http retains upstream HTTP/1.1
+# definitions unchanged, including framing, redirects and server limits.
+# Its types are shared by callers and the client; do not mix them with the
+# full HTTP module types. HTTP/2 and content decoders stay outside this graph.
+# Extraction is an operational compilation constraint, not a formal proof.

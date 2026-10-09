@@ -1,6 +1,6 @@
 import Base
 import ../libs/DirectH1.bend as DirectH1
-import 0x2ef00d214bb4173160420b61a1472572/http.bend as Http
+import ../libs/DirectH1Http.bend as Http
 
 def show(result: Result<&1, &1, Http.Err, Http.Res>) -> String:
     match result:

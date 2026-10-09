@@ -18,15 +18,15 @@ Import `libs/DirectH1.bend` as `DirectH1`.
 | `fetch.all(requests, workers)` | Bounded concurrent batch, input-order results |
 | `fetch.all.with(requests, workers, options)` | Concurrent batch with per-request options |
 
-Headers, responses, errors and batch request records are the pinned original
-HTTP types: `Http.empty`, `Http.set`, `Http.add`, `Http.Res`, `Http.Err`, and
+Import `libs/DirectH1Http.bend` as `Http` for shared headers, responses, errors
+and batch request records: `Http.empty`, `Http.set`, `Http.add`, `Http.Res`, `Http.Err`, and
 `Http.Fetch`. Bodies are binary `Bytes.Bytes`; `Http.from_string` accepts an
 octet string. Use UTF-8 encoding explicitly for Unicode text.
 
 ```bend
 import Base
 import ./libs/DirectH1.bend as DirectH1
-import 0x2ef00d214bb4173160420b61a1472572/http.bend as Http
+import ./libs/DirectH1Http.bend as Http
 
 def request(url: String, token: String) -> IO(Result<&1, &1, Http.Err, Http.Res>):
     DirectH1.fetch("GET", url,
@@ -92,9 +92,19 @@ the original parser behavior and wire-byte cap still apply.
 
 Original implementation: <https://github.com/paymog/bend-kit/tree/main/http>.
 Pinned HTTP source: `0x2ef00d214bb4173160420b61a1472572/http.bend`.
-The client calls that source directly for request/header encoding, header
-parsing, body framing/chunk decoding, redirect policy, decompression and errors.
-It does not copy those implementations. Redirects preserve upstream method/body
+The shared `DirectH1Http.bend` module retains 287 upstream definitions verbatim
+for request/header encoding, header parsing, body framing/chunk decoding,
+redirect policy, server handling and errors. It excludes the general client,
+HTTP/2 and compression imports to reduce Bend checking memory. The isolated
+decoder worker still calls the original decompression implementation.
+
+This changes the module identity of public HTTP types: callers must import
+`DirectH1Http.bend`, as the examples do, rather than the full HTTP module.
+Do not mix response/error constructors from the two modules.
+
+The eStore source-preservation audit (`test/check-http-subset.py`) compares all
+retained definitions with the pinned cache. Compile both repositories together
+when adopting this change. No server/parser limits or wire behavior were changed. Redirects preserve upstream method/body
 rewrites and remove authorization/cookies when the origin changes.
 
 DNS and verified TLS use the existing local `libs/wire` package; address fallback

@@ -1,6 +1,6 @@
 # Direct HTTP/1.1 client. Reuses the pinned bend-kit HTTP codecs and policies.
 import Base
-import 0x2ef00d214bb4173160420b61a1472572/http.bend as Http
+import ./DirectH1Http.bend as Http
 import 0x49814d83de8f70993a43e1002be29ecd/bytes.bend as Bytes
 import 0x1f2d80f53f971b16c6de6a65cb1918ae/url.bend as Url
 import ./wire/wire.bend as Wire

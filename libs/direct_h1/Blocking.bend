@@ -1,6 +1,6 @@
 # Cancellable blocking stages using Base.Process.run, never a shell.
 import Base
-import 0x2ef00d214bb4173160420b61a1472572/http.bend as Http
+import ../DirectH1Http.bend as Http
 import 0x49814d83de8f70993a43e1002be29ecd/bytes.bend as Bytes
 
 def remaining(+total: U32, start: Nat, now: Nat, phase: U32) -> U32:
