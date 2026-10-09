@@ -198,25 +198,10 @@ def hex_mask(value: U32, mask: U32) -> U32:
         case U32{value_word} U32{mask_word}:
             U32{hex_word_and(32n, mask_word, value_word)}
 
+# Arithmetic preserves every branch of the former 0..15 literal table and its
+# fallback, without making the compiler compare sixteen expanded word patterns.
 def hex_digit.nibble(+n: U32) -> Char:
-    match n:
-        case 0: Chr{48}
-        case 1: Chr{49}
-        case 2: Chr{50}
-        case 3: Chr{51}
-        case 4: Chr{52}
-        case 5: Chr{53}
-        case 6: Chr{54}
-        case 7: Chr{55}
-        case 8: Chr{56}
-        case 9: Chr{57}
-        case 10: Chr{97}
-        case 11: Chr{98}
-        case 12: Chr{99}
-        case 13: Chr{100}
-        case 14: Chr{101}
-        case 15: Chr{102}
-        case _: hex_digit_kind(n, U32.is_lt(n, 10))
+    hex_digit_kind(n, U32.is_lt(n, 10))
 
 def hex_digit(+n: U32) -> Char:
     hex_digit.nibble(hex_mask(n, 15))

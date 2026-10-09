@@ -648,3 +648,8 @@ law aes256gcm_nist_rejects_changed_ciphertext:
 # Its types are shared by callers and the client; do not mix them with the
 # full HTTP module types. HTTP/2 and content decoders stay outside this graph.
 # Extraction is an operational compilation constraint, not a formal proof.
+
+# AES hex formatting must preserve all sixteen lowercase digits, masking,
+# envelope encoding and parsing. The arithmetic formatter keeps the existing
+# behavior for out-of-range nibble inputs as well. AES_EnvelopeProof checks
+# digit inversion and serialized envelope structure after formatting changes.
