@@ -1,4 +1,5 @@
 import Base
+import ./proof/JSON_NumberScanProof.bend as NumberScanProof
 import ./proof/AES_NistInputProof.bend as AESNistInputProof
 import ./LAWS.bend as L
 import ./libs/JSON.bend as Json

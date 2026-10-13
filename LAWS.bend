@@ -619,3 +619,42 @@ law aes256gcm_nist_rejects_changed_ciphertext:
             AES.Tag{[253, 44, 170, 22, 165, 131, 46, 118, 170, 19, 44, 20, 83, 238, 218, 126], {==}, {==}}, {==}}) ==
         Fail{AES.AuthenticationFailed{}} :
         Result<&2, &2, AES.Error, List<&2, U32>>}
+
+# DirectH1 integration obligations (effectful behavior, not formal proofs):
+# - HTTP/1.1 only; never negotiate HTTP/2 or bypass TLS chain/hostname checks.
+# - Reuse pinned upstream codecs, framing and redirect credential stripping.
+# - Active requests/pools own their sockets; failures, expiry, eviction and
+#   explicit pool.close release them. Never drop a pool without closing it.
+# - Pool keys include origin and client identity; idle count is globally bounded.
+# - Only self-delimited HTTP/1.1 responses can return a socket to the pool.
+# - Do not reuse close-delimited/HTTP1.0/upgrade/trailing-byte/Connection:close
+#   responses. Connection tokens are normalized across all repeated fields.
+# - Stale reuse retries at most once, only for idempotent methods with no
+#   response bytes. Never retry POST/PATCH or reset the shared deadline.
+# - Clamp reads/writes/dial/TLS to finite phase and remaining total budgets.
+# - Never interpret exhausted total budget as socket timeout zero (unlimited).
+# - Bound header/wire reads, reject oversized Content-Length before retention,
+#   and count fresh body fragments before retaining/concatenating them.
+# - DNS/decompression run in a deadline-bound Bend child. Timeout terminates
+#   and reaps the child; never replace this with an uncancelled IO.within race.
+# - Parent parsing/serialization/cleanup are not preemptible: do not claim
+#   strict real-time return latency for total_ms.
+# - Decoded allocation retains upstream's 16 MiB cap; smaller body caps are
+#   post-decode checks. Do not advertise them as decoder allocation limits.
+# - Concurrent batches own separate sockets and preserve result input order.
+
+# DirectH1 compilation boundary: DirectH1Http retains upstream HTTP/1.1
+# definitions unchanged, including framing, redirects and server limits.
+# Its types are shared by callers and the client; do not mix them with the
+# full HTTP module types. HTTP/2 and content decoders stay outside this graph.
+# Extraction is an operational compilation constraint, not a formal proof.
+
+# AES hex formatting must preserve all sixteen lowercase digits, masking,
+# envelope encoding and parsing. The arithmetic formatter keeps the existing
+# behavior for out-of-range nibble inputs as well. AES_EnvelopeProof checks
+# digit inversion and serialized envelope structure after formatting changes.
+
+# JSON number scanning collects exactly ASCII digits and - + . e E, stopping
+# before the first other character. The accumulator is reversed; the returned
+# suffix is untouched. Grammar validation remains the parser's separate step.
+# JSON_NumberScanProof checks delimiter, range, Unicode and accumulator cases.
